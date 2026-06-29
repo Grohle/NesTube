@@ -64,6 +64,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.release_tag }}
+          name: "Nestify ${{ inputs.release_tag }}"
+          body_path: RELEASE_NOTES.md
           files: Nestify-*-linux.tar.gz
           prerelease: true
           fail_on_unmatched_files: true
