@@ -178,7 +178,8 @@ class AppPreferences:
             "buymeacoffee_url": self.buymeacoffee_url,
             "github_url": self.github_url,
             "profile_usage": self.profile_usage,
-            "custom_profiles": [p.to_dict() for p in self.custom_profiles],
+            # custom_profiles are persisted in their own SQLite table (see
+            # save_profile_file / _persist_profiles), not embedded here.
             "last_profile_key": self.last_profile_key,
             "job_name_prefix": self.job_name_prefix,
             "remnant_name_prefix": self.remnant_name_prefix,
@@ -314,21 +315,107 @@ def load() -> AppPreferences:
             _prefs = AppPreferences()
             _apply_default_pdf_fonts(_prefs)
 
-        _sync_profiles_from_folder(_prefs)
+        _load_profiles_into(_prefs)
         return _prefs
 
 
-def _sync_profiles_from_folder(prefs: AppPreferences) -> None:
-    """Merge profiles from Profiles/ folder into prefs."""
-    folder_profiles = load_profiles_from_folder()
-    existing_ids = {p.id for p in prefs.custom_profiles}
-    for fp in folder_profiles:
-        if fp.id not in existing_ids:
-            prefs.custom_profiles.append(fp)
+def _load_profiles_into(prefs: AppPreferences) -> None:
+    """Load custom profiles from the SQLite ``profiles`` table into ``prefs``.
+
+    One-time migration: if the table is empty, seed it from (a) any profiles
+    still embedded in a legacy app_config blob and (b) the legacy
+    ``Profiles/*.json`` files, then retire those JSON files to ``*.migrated``.
+    Thumbnails are slurped into the DB on the way in and rehydrated to the
+    Profiles/ cache when missing, so profiles stay portable with the database.
+    """
+    from nestify.database import get_geometry_db
+    db = get_geometry_db()
+    rows = db.get_all_profiles()
+    if not rows:
+        seeded: Dict[str, CustomProfileEntry] = {}
+        for p in prefs.custom_profiles:          # (a) from the legacy blob
+            seeded[p.id] = p
+        for fp in load_profiles_from_folder():   # (b) from Profiles/*.json
+            seeded.setdefault(fp.id, fp)
+        if seeded:
+            for entry in seeded.values():
+                db.upsert_profile(entry.to_dict(), _read_cached_image(entry))
+            _log.info("Migrated %d custom profiles to SQLite", len(seeded))
+        _retire_profile_json_files()
+        rows = db.get_all_profiles()
+    prefs.custom_profiles = [CustomProfileEntry.from_dict(r) for r in rows]
+    _rehydrate_profile_images(prefs)
+
+
+def _read_cached_image(entry: CustomProfileEntry) -> Optional[bytes]:
+    """Read a profile's PNG thumbnail from PROFILES_DIR, or None if absent."""
+    if not entry.image:
+        return None
+    path = os.path.join(PROFILES_DIR, entry.image)
+    try:
+        if os.path.isfile(path):
+            with open(path, "rb") as fh:
+                return fh.read()
+    except OSError as exc:
+        _log.warning("Could not read profile image %s: %s", path, exc)
+    return None
+
+
+def _rehydrate_profile_images(prefs: AppPreferences) -> None:
+    """Write each profile's stored thumbnail back to PROFILES_DIR when the
+    cache file is missing (e.g. after relocating or restoring the database)."""
+    from nestify.database import get_geometry_db
+    db = get_geometry_db()
+    for p in prefs.custom_profiles:
+        if not p.image:
+            continue
+        path = os.path.join(PROFILES_DIR, p.image)
+        if os.path.isfile(path):
+            continue
+        data = db.get_profile_image(p.id)
+        if not data:
+            continue
+        try:
+            os.makedirs(PROFILES_DIR, exist_ok=True)
+            with open(path, "wb") as fh:
+                fh.write(data)
+        except OSError as exc:
+            _log.warning("Could not rehydrate profile image %s: %s", path, exc)
+
+
+def _retire_profile_json_files() -> None:
+    """Rename migrated ``Profiles/*.json`` records to ``*.json.migrated`` so
+    they are kept as a backup but never re-imported. PNG thumbnails are left in
+    place as the render cache. Best-effort: failures are non-fatal."""
+    if not os.path.isdir(PROFILES_DIR):
+        return
+    for fn in os.listdir(PROFILES_DIR):
+        if not fn.endswith(".json"):
+            continue
+        src = os.path.join(PROFILES_DIR, fn)
+        try:
+            os.replace(src, src + ".migrated")
+        except OSError as exc:
+            _log.warning("Could not retire profile JSON %s: %s", src, exc)
+
+
+def _persist_profiles(prefs: AppPreferences) -> None:
+    """Mirror prefs.custom_profiles into the SQLite ``profiles`` table.
+
+    Upserts every in-memory profile's record, preserving the stored thumbnail
+    (image bytes are captured by save_profile_file and the one-time migration,
+    so this avoids re-reading the PNG cache on every preference save).
+    Deletions are handled explicitly by delete_profile_file, so this never
+    removes rows."""
+    from nestify.database import get_geometry_db
+    db = get_geometry_db()
+    for p in prefs.custom_profiles:
+        db.upsert_profile(p.to_dict())
 
 
 def save(prefs: Optional[AppPreferences] = None) -> bool:
-    """Persist preferences to the SQLite store (app_meta['app_config'])."""
+    """Persist preferences to the SQLite store (app_meta['app_config']) and
+    mirror custom profiles into the profiles table."""
     global _prefs
     with _lock:
         if prefs is not None:
@@ -339,6 +426,7 @@ def save(prefs: Optional[AppPreferences] = None) -> bool:
             from nestify.database import get_geometry_db
             get_geometry_db().set_meta(
                 _META_CONFIG, json.dumps(_prefs.to_dict(), ensure_ascii=False))
+            _persist_profiles(_prefs)
             return True
         except Exception as exc:  # noqa: BLE001 — persistence must never crash the UI
             _log.error("Could not save config to SQLite: %s", exc)
@@ -396,14 +484,15 @@ def top_profiles(n: int = 5) -> List[str]:
 # ── Profile file management (Profiles/ folder) ───────────────────────────────
 
 def save_profile_file(entry: CustomProfileEntry) -> str:
-    """Save a profile as a JSON file in the Profiles/ folder. Returns the file path."""
-    os.makedirs(PROFILES_DIR, exist_ok=True)
-    safe_name = "".join(c if c.isalnum() or c in " _-" else "_" for c in entry.name).strip()
-    filepath = os.path.join(PROFILES_DIR, f"{safe_name}.json")
-    data = entry.to_dict()
-    with open(filepath, "w", encoding="utf-8") as fh:
-        json.dump(data, fh, ensure_ascii=False, indent=2)
-    return filepath
+    """Persist one custom profile to the SQLite ``profiles`` table.
+
+    The PNG thumbnail (``entry.image``) is written by the caller into
+    PROFILES_DIR as a render cache; its bytes are slurped into the DB row here
+    so the whole profile — drawing, metadata and thumbnail — travels with the
+    database and lands in backups. Returns the profile id."""
+    from nestify.database import get_geometry_db
+    get_geometry_db().upsert_profile(entry.to_dict(), _read_cached_image(entry))
+    return entry.id
 
 
 def load_profiles_from_folder() -> List[CustomProfileEntry]:
@@ -425,19 +514,22 @@ def load_profiles_from_folder() -> List[CustomProfileEntry]:
 
 
 def delete_profile_file(entry: CustomProfileEntry) -> bool:
-    """Delete a profile JSON (and its image if any) from the Profiles/ folder."""
-    safe_name = "".join(c if c.isalnum() or c in " _-" else "_" for c in entry.name).strip()
-    filepath = os.path.join(PROFILES_DIR, f"{safe_name}.json")
+    """Delete a custom profile from the SQLite ``profiles`` table and remove its
+    cached PNG thumbnail from PROFILES_DIR if present."""
+    from nestify.database import get_geometry_db
     try:
-        if os.path.isfile(filepath):
-            os.remove(filepath)
-        if entry.image:
-            img_path = os.path.join(PROFILES_DIR, entry.image)
+        get_geometry_db().delete_profile(entry.id)
+    except Exception as exc:  # noqa: BLE001 — persistence must never crash the UI
+        _log.error("Could not delete profile %s: %s", entry.id, exc)
+        return False
+    if entry.image:
+        img_path = os.path.join(PROFILES_DIR, entry.image)
+        try:
             if os.path.isfile(img_path):
                 os.remove(img_path)
-        return True
-    except OSError:
-        return False
+        except OSError:
+            pass
+    return True
 
 
 def _apply_default_pdf_fonts(prefs: AppPreferences) -> None:

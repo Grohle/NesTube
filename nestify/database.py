@@ -233,6 +233,13 @@ class GeometryDB:
                 custom_display_name TEXT DEFAULT ''
             );
 
+            CREATE TABLE IF NOT EXISTS profiles (
+                id          TEXT PRIMARY KEY,
+                name        TEXT NOT NULL DEFAULT '',
+                data        TEXT NOT NULL DEFAULT '{}',
+                image_data  BLOB
+            );
+
             CREATE TABLE IF NOT EXISTS app_meta (
                 key     TEXT PRIMARY KEY,
                 value   TEXT
@@ -715,6 +722,59 @@ class GeometryDB:
                 str(b.get("notes", "")), str(b.get("custom_display_name", "")),
             ) for b in bars],
         )
+        c.commit()
+
+    # ── Custom profiles (full-fidelity CustomProfileEntry rows) ────────────
+
+    def get_all_profiles(self) -> List[dict]:
+        """Return every custom profile as a CustomProfileEntry.to_dict()-shaped
+        dict, in insertion order. The drawing/metadata live in the ``data``
+        JSON column; the thumbnail bytes are fetched separately."""
+        c = self.connect()
+        rows = c.execute("SELECT data FROM profiles ORDER BY rowid").fetchall()
+        out: List[dict] = []
+        for r in rows:
+            try:
+                out.append(json.loads(r["data"] or "{}"))
+            except (ValueError, TypeError):
+                continue
+        return out
+
+    def get_profile_image(self, profile_id: str) -> Optional[bytes]:
+        """Return the stored PNG thumbnail bytes for a profile, or None."""
+        c = self.connect()
+        row = c.execute(
+            "SELECT image_data FROM profiles WHERE id = ?", (str(profile_id),)
+        ).fetchone()
+        return row["image_data"] if row and row["image_data"] is not None else None
+
+    def upsert_profile(self, entry: dict, image_data: Optional[bytes] = None) -> None:
+        """Insert or update one custom profile. ``entry`` is a
+        CustomProfileEntry.to_dict(); ``image_data`` are the PNG thumbnail bytes,
+        kept so the profile travels with the database and lands in backups.
+        When ``image_data`` is None any previously stored image is preserved."""
+        c = self.connect()
+        pid = str(entry.get("id", ""))
+        payload = json.dumps(entry, ensure_ascii=False)
+        name = str(entry.get("name", ""))
+        if image_data is None:
+            c.execute(
+                "INSERT INTO profiles (id, name, data) VALUES (?, ?, ?) "
+                "ON CONFLICT(id) DO UPDATE SET name=excluded.name, data=excluded.data",
+                (pid, name, payload),
+            )
+        else:
+            c.execute(
+                "INSERT INTO profiles (id, name, data, image_data) "
+                "VALUES (?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET "
+                "name=excluded.name, data=excluded.data, image_data=excluded.image_data",
+                (pid, name, payload, sqlite3.Binary(image_data)),
+            )
+        c.commit()
+
+    def delete_profile(self, profile_id: str) -> None:
+        c = self.connect()
+        c.execute("DELETE FROM profiles WHERE id = ?", (str(profile_id),))
         c.commit()
 
     # ── Generic key/value app metadata ─────────────────────────────────────
