@@ -22,6 +22,7 @@ from nestify.logic import calcular_resultado
 from nestify.context_sync import (
     ensure_material_contexts, save_state_to_context, load_context_to_state,
     recompute_auto_barras, set_material_selection, layout_covers_all_cuts,
+    layout_to_barras,
 )
 from nestify.i18n import t
 from nestify.naming import localize_material
@@ -766,6 +767,12 @@ class TabPerfiles(QWidget):
         the engine. "shared" uses the globally optimised bars (waste shared
         across pieces); "individual" puts each piece on its own bar so no
         remnant is shared.
+
+        In "shared" mode the real Nesting-tab layout wins whenever it covers
+        every cut: costs then reflect that layout's actual bar count and
+        remnants (manual moves, 2D nesting, common cuts included), and the
+        layout is left untouched. Only when there is no complete layout do we
+        fall back to the quick FFD/BFD/NFD estimate.
         """
         if app_config.get().cost_mode == "individual":
             bars = []
@@ -773,6 +780,8 @@ class TabPerfiles(QWidget):
                 for _ in range(max(1, int(getattr(c, "cantidad", 1) or 1))):
                     bars.append([c.largo])
             return bars
+        if layout_covers_all_cuts(ctx):
+            return layout_to_barras(ctx.nesting_layout)
         return recompute_auto_barras(ctx, self._state.calc_system)
 
     def _update_nesting_src_lbl(self, ctx: MaterialContext) -> None:
