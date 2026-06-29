@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TabCortes</class>
+ <widget class="QWidget" name="TabCortes">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>900</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <layout class="QVBoxLayout" name="main_layout">
+   <property name="leftMargin"><number>0</number></property>
+   <property name="topMargin"><number>0</number></property>
+   <property name="rightMargin"><number>0</number></property>
+   <property name="bottomMargin"><number>0</number></property>
+   <property name="spacing"><number>0</number></property>
+
+   <!-- header_card -->
+   <item>
+    <widget class="QFrame" name="header_card">
+     <property name="role" stdset="0">
+      <string>card</string>
+     </property>
+     <layout class="QGridLayout" name="header_grid">
+      <property name="leftMargin"><number>8</number></property>
+      <property name="topMargin"><number>6</number></property>
+      <property name="rightMargin"><number>8</number></property>
+      <property name="bottomMargin"><number>6</number></property>
+      <property name="spacing"><number>8</number></property>
+
+      <!-- Row 0, col 0-1: placeholder for MaterialAutocomplete -->
+      <item row="0" column="0" colspan="2">
+       <widget class="QWidget" name="mat_ac_placeholder" native="true"/>
+      </item>
+
+      <!-- Row 0, col 2: order number -->
+      <item row="0" column="2">
+       <widget class="QLineEdit" name="e_pedido">
+        <property name="placeholderText">
+         <string>Order number</string>
+        </property>
+       </widget>
+      </item>
+
+      <!-- Row 0, col 3: offer number -->
+      <item row="0" column="3">
+       <widget class="QLineEdit" name="e_oferta">
+        <property name="placeholderText">
+         <string>Offer number</string>
+        </property>
+       </widget>
+      </item>
+
+      <!-- Row 1, col 0: client -->
+      <item row="1" column="0">
+       <widget class="QLineEdit" name="e_cliente">
+        <property name="placeholderText">
+         <string>Client</string>
+        </property>
+       </widget>
+      </item>
+
+      <!-- Row 1, col 1-3: field buttons -->
+      <item row="1" column="1" colspan="3">
+       <widget class="QWidget" name="field_btns" native="true">
+        <layout class="QHBoxLayout" name="field_btns_layout">
+         <property name="leftMargin"><number>0</number></property>
+         <property name="topMargin"><number>0</number></property>
+         <property name="rightMargin"><number>0</number></property>
+         <property name="bottomMargin"><number>0</number></property>
+         <property name="spacing"><number>4</number></property>
+         <item>
+          <widget class="QPushButton" name="add_field_btn">
+           <property name="text">
+            <string>+ Add field</string>
+           </property>
+           <property name="minimumSize">
+            <size><width>0</width><height>22</height></size>
+           </property>
+           <property name="maximumSize">
+            <size><width>16777215</width><height>22</height></size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="edit_fields_btn">
+           <property name="text">
+            <string>Edit fields</string>
+           </property>
+           <property name="minimumSize">
+            <size><width>0</width><height>22</height></size>
+           </property>
+           <property name="maximumSize">
+            <size><width>16777215</width><height>22</height></size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="field_btns_spacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size><width>40</width><height>20</height></size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+
+      <!-- Row 2, col 0-3: custom fields widget (hidden by default) -->
+      <item row="2" column="0" colspan="4">
+       <widget class="QWidget" name="custom_fields_widget" native="true">
+        <property name="visible">
+         <bool>false</bool>
+        </property>
+        <layout class="QHBoxLayout" name="custom_fields_layout">
+         <property name="leftMargin"><number>0</number></property>
+         <property name="topMargin"><number>0</number></property>
+         <property name="rightMargin"><number>0</number></property>
+         <property name="bottomMargin"><number>0</number></property>
+         <property name="spacing"><number>6</number></property>
+         <item>
+          <spacer name="custom_fields_spacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size><width>40</width><height>20</height></size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
+   <!-- controls_card -->
+   <item>
+    <widget class="QFrame" name="controls_card">
+     <property name="role" stdset="0">
+      <string>card</string>
+     </property>
+     <layout class="QHBoxLayout" name="controls_layout">
+      <property name="leftMargin"><number>8</number></property>
+      <property name="topMargin"><number>10</number></property>
+      <property name="rightMargin"><number>8</number></property>
+      <property name="bottomMargin"><number>10</number></property>
+      <property name="spacing"><number>12</number></property>
+
+      <item>
+       <widget class="QLabel" name="lbl_kerf">
+        <property name="text">
+         <string>Kerf loss</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="e_kerf">
+        <property name="text">
+         <string>2.0</string>
+        </property>
+        <property name="minimumSize">
+         <size><width>54</width><height>30</height></size>
+        </property>
+        <property name="maximumSize">
+         <size><width>54</width><height>30</height></size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="lbl_margin">
+        <property name="text">
+         <string>Tube margin</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="e_margin">
+        <property name="text">
+         <string>0</string>
+        </property>
+        <property name="minimumSize">
+         <size><width>54</width><height>30</height></size>
+        </property>
+        <property name="maximumSize">
+         <size><width>54</width><height>30</height></size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="lbl_bar_len">
+        <property name="text">
+         <string>Bar length</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="e_bar_len">
+        <property name="text">
+         <string>6000</string>
+        </property>
+        <property name="minimumSize">
+         <size><width>72</width><height>30</height></size>
+        </property>
+        <property name="maximumSize">
+         <size><width>72</width><height>30</height></size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="lbl_bar_height">
+        <property name="text">
+         <string>Bar height</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="e_bar_height">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="minimumSize">
+         <size><width>80</width><height>30</height></size>
+        </property>
+        <property name="maximumSize">
+         <size><width>80</width><height>30</height></size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="controls_spacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size><width>40</width><height>20</height></size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QComboBox" name="calc_combo_cuts">
+        <property name="minimumSize">
+         <size><width>150</width><height>30</height></size>
+        </property>
+        <property name="maximumSize">
+         <size><width>16777215</width><height>30</height></size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="result_lbl">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="add_btn">
+        <property name="text">
+         <string>+ Add cut</string>
+        </property>
+        <property name="minimumSize">
+         <size><width>0</width><height>30</height></size>
+        </property>
+        <property name="maximumSize">
+         <size><width>16777215</width><height>30</height></size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="calc_btn">
+        <property name="text">
+         <string>Calculate</string>
+        </property>
+        <property name="minimumSize">
+         <size><width>0</width><height>30</height></size>
+        </property>
+        <property name="maximumSize">
+         <size><width>16777215</width><height>30</height></size>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
+   <!-- splitter: cuts_panel | preview_panel -->
+   <item>
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="childrenCollapsible">
+      <bool>false</bool>
+     </property>
+
+     <!-- cuts_panel -->
+     <widget class="QWidget" name="cuts_panel">
+      <property name="minimumSize">
+       <size><width>480</width><height>0</height></size>
+      </property>
+      <layout class="QVBoxLayout" name="cuts_panel_layout">
+       <property name="leftMargin"><number>4</number></property>
+       <property name="topMargin"><number>4</number></property>
+       <property name="rightMargin"><number>4</number></property>
+       <property name="bottomMargin"><number>4</number></property>
+       <property name="spacing"><number>2</number></property>
+       <item>
+        <widget class="QLabel" name="cuts_hdr">
+         <property name="text">
+          <string>Cuts</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QScrollArea" name="cuts_scroll">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
+         </property>
+         <widget class="QWidget" name="rows_container">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>470</width>
+            <height>300</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="rows_layout">
+           <property name="leftMargin"><number>0</number></property>
+           <property name="topMargin"><number>0</number></property>
+           <property name="rightMargin"><number>0</number></property>
+           <property name="bottomMargin"><number>0</number></property>
+           <property name="spacing"><number>2</number></property>
+           <item>
+            <spacer name="rows_spacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size><width>20</width><height>40</height></size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+
+     <!-- preview_panel -->
+     <widget class="QWidget" name="preview_panel">
+      <property name="minimumSize">
+       <size><width>200</width><height>0</height></size>
+      </property>
+      <layout class="QVBoxLayout" name="preview_panel_layout">
+       <property name="leftMargin"><number>4</number></property>
+       <property name="topMargin"><number>4</number></property>
+       <property name="rightMargin"><number>4</number></property>
+       <property name="bottomMargin"><number>4</number></property>
+       <property name="spacing"><number>2</number></property>
+       <item>
+        <widget class="QLabel" name="preview_hdr">
+         <property name="text">
+          <string>Nesting preview</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QScrollArea" name="preview_scroll">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

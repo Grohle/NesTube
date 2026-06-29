@@ -1,0 +1,23 @@
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+*.json
+dist/
+build/
+*.egg-info/
+.DS_Store
+# Generated visual-verification captures (auto_capture.sh)
+artifacts/
+nestify/assets/logo_source.png
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+# Legacy JSON stores retired after the SQLite migration (local data backups)
+*.migrated
+# Generated screenshot artifacts (offscreen capture output)
+artifacts/
+# Auto-generated per-piece DXF contour cache (created on first placement)
+dxf/
