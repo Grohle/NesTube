@@ -35,8 +35,11 @@ through every tab in detail.
   profile geometry and price tables.
 - **Exports** cutting lists, quotes, and layouts to PDF, Excel, Word, and DXF.
 
-Jobs are saved as `.nestjob` files. Settings live in `nestify_config.json` next
-to the program.
+All your data — jobs, custom profiles, materials, and stock — lives in a single
+local SQLite database (`nestify_geometry.db`). You can point it at a shared or
+network location from **File → Database management**, and it's snapshotted
+automatically on launch. `.nestjob` files are an optional export format for
+sharing a single job.
 
 ### Screenshots
 
@@ -122,7 +125,7 @@ The three packing algorithms:
 - Import cut lists from Excel; export cut lists, quotes, and inventory to Excel
 - PDF export (cutting list, nesting diagram, quote) with bundled Unicode fonts
 - DOCX quote export and per-piece DXF contour export
-- Rolling automatic backups of the local database on every launch
+- All data in one local SQLite database — relocatable to a shared drive, with rolling automatic backups on every launch
 - Metric and imperial units; dark and light themes
 - English and Spanish interface
 - Fully offline — no telemetry, no accounts
@@ -138,20 +141,23 @@ The three packing algorithms:
 
 ### Data files
 
-All files are plain JSON/SQLite and stay on your machine, next to `Nestify.exe`
-(or in the project root when running from source).
+Everything stays on your machine, next to `Nestify.exe` (or in the project root
+when running from source). The database can be moved to a shared drive from
+**File → Database management**.
 
-| File | Purpose |
+| Path | Purpose |
 |------|---------|
-| `nestify_config.json` | Preferences: language, theme, algorithm, nesting options |
-| `*.nestjob` | A saved job (cuts, profile, nesting state, costs) |
-| `materials_db.json` | Local materials library |
-| `stock_db.json` | Local bar inventory |
-| `Profiles/` | Custom profile definitions and thumbnails |
+| `nestify_geometry.db` | The database: jobs, custom profiles, materials, stock inventory, and preferences |
+| `nestify_db_location.json` | Bootstrap pointer to the database location and backup policy |
+| `backups/` | Rolling automatic database snapshots |
+| `*.nestjob` | Optional export of a single job (cuts, profile, nesting state, costs) |
+| `Profiles/` | Thumbnail cache for profile illustrations (rebuilt from the database) |
 | `dxf/` | Auto-generated DXF contour files per piece |
 
-Packing results are recomputed at runtime, so reopen a job and press
-**Calculate** to refresh them.
+Earlier versions kept preferences, materials, stock, and profiles in separate
+JSON files; those are imported into the database automatically on first launch
+and retired to `*.migrated`. Packing results are recomputed at runtime, so
+reopen a job and press **Calculate** to refresh them.
 
 ### Building it yourself
 
@@ -246,8 +252,11 @@ cada pestaña en detalle.
   geometría del perfil y tus tarifas.
 - **Exporta** listas de corte, presupuestos y layouts a PDF, Excel, Word y DXF.
 
-Los trabajos se guardan como archivos `.nestjob`. La configuración vive en
-`nestify_config.json`, junto al programa.
+Todos tus datos — trabajos, perfiles personalizados, materiales y stock — viven
+en una única base de datos SQLite local (`nestify_geometry.db`). Puedes moverla a
+una ubicación compartida o de red desde **Archivo → Gestión de base de datos**, y
+se respalda automáticamente en cada arranque. Los archivos `.nestjob` son un
+formato de exportación opcional para compartir un trabajo concreto.
 
 ### Capturas
 
@@ -317,7 +326,7 @@ un mismo trabajo puede contener varios perfiles. Costes añade una sub-pestaña
 - Importar cortes desde Excel; exportar cortes, presupuestos e inventario a Excel
 - Exportar PDF (lista de corte, diagrama, presupuesto) con fuentes Unicode
 - Exportar presupuesto a DOCX y contornos DXF por pieza
-- Copias de seguridad automáticas de la base de datos en cada arranque
+- Todos los datos en una única base de datos SQLite local — relocalizable a una unidad compartida, con copias de seguridad automáticas en cada arranque
 - Unidades métricas e imperiales; temas oscuro y claro
 - Interfaz en español e inglés
 - Totalmente sin conexión: sin telemetría ni cuentas
