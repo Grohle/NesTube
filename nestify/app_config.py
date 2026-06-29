@@ -179,7 +179,7 @@ class AppPreferences:
             "github_url": self.github_url,
             "profile_usage": self.profile_usage,
             # custom_profiles are persisted in their own SQLite table (see
-            # save_profile_file / _persist_profiles), not embedded here.
+            # save_profile_file / delete_profile_file), not embedded here.
             "last_profile_key": self.last_profile_key,
             "job_name_prefix": self.job_name_prefix,
             "remnant_name_prefix": self.remnant_name_prefix,
@@ -399,23 +399,12 @@ def _retire_profile_json_files() -> None:
             _log.warning("Could not retire profile JSON %s: %s", src, exc)
 
 
-def _persist_profiles(prefs: AppPreferences) -> None:
-    """Mirror prefs.custom_profiles into the SQLite ``profiles`` table.
-
-    Upserts every in-memory profile's record, preserving the stored thumbnail
-    (image bytes are captured by save_profile_file and the one-time migration,
-    so this avoids re-reading the PNG cache on every preference save).
-    Deletions are handled explicitly by delete_profile_file, so this never
-    removes rows."""
-    from nestify.database import get_geometry_db
-    db = get_geometry_db()
-    for p in prefs.custom_profiles:
-        db.upsert_profile(p.to_dict())
-
-
 def save(prefs: Optional[AppPreferences] = None) -> bool:
-    """Persist preferences to the SQLite store (app_meta['app_config']) and
-    mirror custom profiles into the profiles table."""
+    """Persist preferences to the SQLite store (app_meta['app_config']).
+
+    Custom profiles live in their own ``profiles`` table and are persisted at
+    the point of mutation via save_profile_file / delete_profile_file, so this
+    only writes the preferences document (no per-save profile rewrite)."""
     global _prefs
     with _lock:
         if prefs is not None:
@@ -426,7 +415,6 @@ def save(prefs: Optional[AppPreferences] = None) -> bool:
             from nestify.database import get_geometry_db
             get_geometry_db().set_meta(
                 _META_CONFIG, json.dumps(_prefs.to_dict(), ensure_ascii=False))
-            _persist_profiles(_prefs)
             return True
         except Exception as exc:  # noqa: BLE001 — persistence must never crash the UI
             _log.error("Could not save config to SQLite: %s", exc)

@@ -585,12 +585,14 @@ class NestifyApp(QMainWindow):
         )
         if existing:
             existing.fields = fields
+            target = existing
         else:
-            entry = CustomProfileEntry(
+            target = CustomProfileEntry(
                 id=uuid.uuid4().hex[:10], name=name, fields=fields,
             )
-            self._prefs.custom_profiles.append(entry)
+            self._prefs.custom_profiles.append(target)
         app_config.save(self._prefs)
+        app_config.save_profile_file(target)
         self._tab_perfiles.refresh_profile_selector()
 
     # ── PDF / Nesting config ─────────────────────────────────────────────────
