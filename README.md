@@ -212,9 +212,9 @@ A control-by-control reference lives in the
 
 Nestify has a built-in WYSIWYG editor for PDF layouts (**Settings → PDF Config →
 Edit layout**). For advanced templates you can also open a `.frx` file in
-[FastReport Designer](https://www.fast-report.com/en/download/) via **Settings →
-PDF Config → Base PDF template**. FastReport is a separate commercial product and
-is not required.
+[FastReport Community Edition](https://github.com/FastReports/FastReport) — the
+free, open-source report designer — via **Settings → PDF Config → Base PDF
+template**. It's a separate tool and isn't required to use Nestify.
 
 ### Privacy
 
