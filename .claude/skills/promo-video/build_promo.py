@@ -160,7 +160,7 @@ def render_scene(scene: Scene, spec: Spec, font: str, cap_txt: Path, out: Path) 
             f"h=({fs}+{pad*2}):color={accent}:t=fill"
         )
         vf.append(
-            f"drawtext=fontfile='{font}':textfile='{cap_txt}':"
+            f"drawtext=fontfile='{font}':expansion=none:textfile='{cap_txt}':"
             f"fontcolor={_hex(spec.text)}:fontsize={fs}:x=w*0.06:y=h*0.85:"
             f"box=1:boxcolor={bg}@0.55:boxborderw={pad}"
         )
@@ -182,11 +182,11 @@ def render_card(title_txt: Path, sub_txt: Path, spec: Spec, font: str, out: Path
     big = h // 7
     small = h // 26
     vf = [
-        f"drawtext=fontfile='{font}':textfile='{title_txt}':fontcolor={_hex(spec.text)}:"
+        f"drawtext=fontfile='{font}':expansion=none:textfile='{title_txt}':fontcolor={_hex(spec.text)}:"
         f"fontsize={big}:x=(w-tw)/2:y=h*0.40",
         # Accent underline centred beneath the title (drawbox → iw/ih for frame).
         f"drawbox=x=(iw-240)/2:y=ih*0.40+{int(big*1.15)}:w=240:h=6:color={accent}:t=fill",
-        f"drawtext=fontfile='{font}':textfile='{sub_txt}':fontcolor={_hex(TEXT_DIM)}:"
+        f"drawtext=fontfile='{font}':expansion=none:textfile='{sub_txt}':fontcolor={_hex(TEXT_DIM)}:"
         f"fontsize={small}:x=(w-tw)/2:y=h*0.40+{int(big*1.15)}+28",
         f"fade=t=in:st=0:d=0.5",
         f"fade=t=out:st={dur - 0.5:.2f}:d=0.5",
@@ -260,7 +260,7 @@ def burn_captions(raw: str, segments: list, spec: Spec, font: str, out: Path) ->
             f"h=({fs}+{pad*2}):color={accent}:t=fill:enable='{en}'"
         )
         vf.append(
-            f"drawtext=fontfile='{font}':textfile='{cf}':fontcolor={_hex(spec.text)}:"
+            f"drawtext=fontfile='{font}':expansion=none:textfile='{cf}':fontcolor={_hex(spec.text)}:"
             f"fontsize={fs}:x={tx}:y={ty}:box=1:boxcolor={bg}@0.6:"
             f"boxborderw={pad}:enable='{en}'"
         )
@@ -301,6 +301,144 @@ def compose_live(raw: str, timeline_path: str, spec: Spec, out_path: str) -> Non
         concat_xfade(clips, durations, spec, Path(out_path))
     total = sum(durations) - spec.transition * (len(clips) - 1)
     print(f"✓ Wrote {out_path}  (live tour + title/outro, ~{total:.1f}s, "
+          f"{spec.width}x{spec.height}@{spec.fps})")
+
+
+# ── LinkedIn flashy vertical (4:5) composition ──────────────────────────────
+LINKEDIN_STATS = [
+    ("job",     "Save & reopen every job"),
+    ("cut",     "3 packing algorithms"),
+    ("nest",    "Up to ~83% material yield"),
+    ("cost",    "Instant cost & weight"),
+    ("profile", "Built-in profile library"),
+    ("stock",   "Reuse offcuts & stock"),
+]
+
+
+def _seg_stat(caption: str) -> str:
+    c = caption.lower()
+    for key, stat in LINKEDIN_STATS:
+        if key in c:
+            return stat
+    return ""
+
+
+def _alpha(s: float, e: float, f: float = 0.45) -> str:
+    """drawtext alpha that fades in over f, holds, fades out over f. Commas are
+    escaped for the filter parser; drawtext clamps the result to [0,1]."""
+    return (f"if(lt(t\\,{s + f:.3f})\\,(t-{s:.3f})/{f}\\,"
+            f"if(lt(t\\,{e - f:.3f})\\,1\\,({e:.3f}-t)/{f}))")
+
+
+def _render_text_card(out: Path, dur: float, spec: Spec, font: str,
+                      texts, boxes=()) -> None:
+    """Static branded card on the theme background, with a fade in/out.
+    texts: (textfile, size, color, x_expr, y). boxes: (x,y,w,h,color)."""
+    w, h, fps = spec.width, spec.height, spec.fps
+    parts = [f"drawbox=x={x}:y={y}:w={bw}:h={bh}:color={_hex(c)}:t=fill"
+             for (x, y, bw, bh, c) in boxes]
+    parts += [f"drawtext=fontfile='{font}':expansion=none:textfile='{tf}':fontcolor={_hex(col)}:"
+              f"fontsize={sz}:x={x}:y={y}" for (tf, sz, col, x, y) in texts]
+    parts += [f"fade=t=in:st=0:d=0.45", f"fade=t=out:st={dur - 0.45:.2f}:d=0.45",
+              "format=yuv420p"]
+    _run(["ffmpeg", "-y", "-f", "lavfi",
+          "-i", f"color=c={_hex(spec.bg)}:s={w}x{h}:r={fps}:d={dur}",
+          "-vf", ",".join(parts), "-an", "-c:v", "libx264", "-preset", "veryfast",
+          "-crf", "18", "-pix_fmt", "yuv420p", str(out)])
+
+
+def compose_linkedin(raw: str, timeline_path: str, spec: Spec, out_path: str) -> None:
+    """Eye-catching vertical 4:5 (1080x1350) cut for LinkedIn: branded header,
+    centered live footage, kinetic section captions + stat lines, hook intro and
+    CTA outro. Built for muted in-feed autoplay (everything readable as text)."""
+    if not shutil.which("ffmpeg"):
+        raise SystemExit("ffmpeg not found on PATH.")
+    tl = json.loads(Path(timeline_path).read_text(encoding="utf-8"))
+    spec.width, spec.height = 1080, 1350
+    spec.fps = int(tl.get("fps", spec.fps))
+    dur = float(tl.get("duration", 0.0))
+    segments = [(float(a), float(b), c) for a, b, c in tl.get("segments", [])]
+    n = len(segments) or 1
+    font = _font(spec)
+    white, accent, gray, dim = spec.text, spec.accent, "#8A8A8E", "#56565C"
+    FY = 372  # footage band y; header above, captions below
+
+    with tempfile.TemporaryDirectory(prefix="promo_li_") as td:
+        tmp = Path(td)
+
+        # ── body: footage on canvas + persistent header + kinetic captions ──
+        (tmp / "wm.txt").write_text("NESTIFY", encoding="utf-8")
+        (tmp / "tag.txt").write_text("Cutting optimization for metal fabrication", encoding="utf-8")
+        (tmp / "foot.txt").write_text("github.com/Grohle/nestify", encoding="utf-8")
+        chain = [
+            f"drawtext=fontfile='{font}':expansion=none:textfile='{tmp/'wm.txt'}':fontcolor={_hex(white)}:fontsize=78:x=64:y=70",
+            f"drawtext=fontfile='{font}':expansion=none:textfile='{tmp/'tag.txt'}':fontcolor={_hex(gray)}:fontsize=30:x=66:y=168",
+            f"drawbox=x=64:y=1000:w=120:h=6:color={_hex(accent)}:t=fill",
+            f"drawtext=fontfile='{font}':expansion=none:textfile='{tmp/'foot.txt'}':fontcolor={_hex(dim)}:fontsize=26:x=64:y=1300",
+        ]
+        for i, (s, e, cap) in enumerate(segments):
+            a = _alpha(s, e)
+            cnt = tmp / f"cnt{i}.txt"; cnt.write_text(f"{i+1:02d} / {n:02d}", encoding="utf-8")
+            cf = tmp / f"cap{i}.txt"; cf.write_text(cap, encoding="utf-8")
+            chain.append(
+                f"drawtext=fontfile='{font}':expansion=none:textfile='{cnt}':fontcolor={_hex(accent)}:"
+                f"fontsize=30:x=64:y=1028:alpha='{a}'")
+            chain.append(
+                f"drawtext=fontfile='{font}':expansion=none:textfile='{cf}':fontcolor={_hex(white)}:"
+                f"fontsize=58:x=64:y=1066:alpha='{a}'")
+            stat = _seg_stat(cap)
+            if stat:
+                sf = tmp / f"stat{i}.txt"; sf.write_text(stat, encoding="utf-8")
+                chain.append(
+                    f"drawtext=fontfile='{font}':expansion=none:textfile='{sf}':fontcolor={_hex(gray)}:"
+                    f"fontsize=34:x=64:y=1158:alpha='{a}'")
+        fc = (f"[0:v]scale=1080:608,setsar=1[foot];"
+              f"[1:v][foot]overlay=(W-w)/2:{FY}[bg];"
+              f"[bg]" + ",".join(chain) + ",format=yuv420p[outv]")
+        body = tmp / "body.mp4"
+        _run(["ffmpeg", "-y", "-i", raw, "-f", "lavfi",
+              "-i", f"color=c={_hex(spec.bg)}:s=1080x1350:r={spec.fps}:d={dur}",
+              "-filter_complex", fc, "-map", "[outv]", "-t", f"{dur}",
+              "-c:v", "libx264", "-preset", "veryfast", "-crf", "19",
+              "-pix_fmt", "yuv420p", str(body)])
+
+        # ── hook intro ──
+        cx = "(w-tw)/2"
+        (tmp / "kick.txt").write_text("FOR METAL FABRICATION", encoding="utf-8")
+        (tmp / "ttl.txt").write_text("Nestify", encoding="utf-8")
+        (tmp / "sub.txt").write_text("Smarter bar, tube & profile cutting", encoding="utf-8")
+        (tmp / "b1.txt").write_text("Up to ~83% material yield", encoding="utf-8")
+        (tmp / "b2.txt").write_text("Interactive miter & bevel nesting", encoding="utf-8")
+        (tmp / "b3.txt").write_text("PDF · DXF · Excel export", encoding="utf-8")
+        intro = tmp / "intro.mp4"
+        _render_text_card(intro, 3.0, spec, font, texts=[
+            (tmp/"kick.txt", 36, accent, cx, 430),
+            (tmp/"ttl.txt", 150, white, cx, 480),
+            (tmp/"sub.txt", 40, gray, cx, 700),
+            (tmp/"b1.txt", 38, white, cx, 820),
+            (tmp/"b2.txt", 38, white, cx, 884),
+            (tmp/"b3.txt", 38, white, cx, 948),
+        ], boxes=[("(iw-240)/2", 668, 240, 8, accent)])
+
+        # ── CTA outro ──
+        (tmp / "ot.txt").write_text("Nestify", encoding="utf-8")
+        (tmp / "os.txt").write_text("100% offline · GPL-3.0", encoding="utf-8")
+        (tmp / "ourl.txt").write_text("github.com/Grohle/nestify", encoding="utf-8")
+        (tmp / "ofree.txt").write_text("Free & open source", encoding="utf-8")
+        outro = tmp / "outro.mp4"
+        _render_text_card(outro, 3.2, spec, font, texts=[
+            (tmp/"ot.txt", 140, white, cx, 470),
+            (tmp/"os.txt", 40, gray, cx, 660),
+            (tmp/"ourl.txt", 42, white, cx, 812),
+            (tmp/"ofree.txt", 34, accent, cx, 936),
+        ], boxes=[("(iw-260)/2", 640, 260, 8, accent),
+                  ("(iw-620)/2", 792, 620, 86, "#27272A")])
+
+        clips = [intro, body, outro]
+        durations = [3.0, dur, 3.2]
+        concat_xfade(clips, durations, spec, Path(out_path))
+    total = sum(durations) - spec.transition * (len(clips) - 1)
+    print(f"✓ Wrote {out_path}  (LinkedIn 4:5, ~{total:.1f}s, "
           f"{spec.width}x{spec.height}@{spec.fps})")
 
 
@@ -378,6 +516,8 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Build a Nestify promo video.")
     ap.add_argument("--live", help="Live tour footage (raw_tour.mp4 from record_tour.py).")
     ap.add_argument("--timeline", help="timeline.json that pairs with --live.")
+    ap.add_argument("--linkedin", action="store_true",
+                    help="Eye-catching vertical 4:5 cut for LinkedIn (needs --live/--timeline).")
     ap.add_argument("--spec", help="JSON scene spec (full control). Overrides auto build.")
     ap.add_argument("--lang", choices=["es", "en"], default="es")
     ap.add_argument("--img-dir", help="Folder of screenshots (default docs/img/<lang>)")
@@ -398,7 +538,10 @@ def main() -> None:
         spec = Spec(scenes=[], subtitle=sub, transition=args.transition,
                     audio=args.audio, fps=args.fps,
                     width=args.resolution[0], height=args.resolution[1])
-        compose_live(args.live, args.timeline, spec, args.out)
+        if args.linkedin:
+            compose_linkedin(args.live, args.timeline, spec, args.out)
+        else:
+            compose_live(args.live, args.timeline, spec, args.out)
         return
 
     spec = load_spec(args.spec, args) if args.spec else auto_spec(args)

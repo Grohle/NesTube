@@ -20,6 +20,7 @@ SIZE=1920x1080
 FPS=60
 AUDIO=""
 TRANSITION=0.7
+STYLE=wide   # wide (16:9 + cards) | linkedin (vertical 4:5, flashy)
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --lang) LANG_OPT="$2"; shift 2;;
@@ -28,6 +29,7 @@ while [[ $# -gt 0 ]]; do
     --fps) FPS="$2"; shift 2;;
     --audio) AUDIO="$2"; shift 2;;
     --transition) TRANSITION="$2"; shift 2;;
+    --style) STYLE="$2"; shift 2;;
     *) echo "Unknown option: $1" >&2; exit 2;;
   esac
 done
@@ -62,9 +64,10 @@ QT_QPA_PLATFORM=xcb DISPLAY="$DISPLAY_ID" \
     --display "$DISPLAY_ID" --size "$SIZE" --fps "$FPS" --lang "$LANG_OPT" \
     --out "$RAW" --timeline "$TL"
 
-echo "▶ Composing final promo…"
+echo "▶ Composing final promo (style: $STYLE)…"
 COMPOSE_ARGS=(--live "$RAW" --timeline "$TL" --lang "$LANG_OPT"
               --transition "$TRANSITION" --resolution "$SIZE" --out "$OUT")
+[[ "$STYLE" == "linkedin" ]] && COMPOSE_ARGS+=(--linkedin)
 [[ -n "$AUDIO" ]] && COMPOSE_ARGS+=(--audio "$AUDIO")
 python3 "$SKILL_DIR/build_promo.py" "${COMPOSE_ARGS[@]}"
 

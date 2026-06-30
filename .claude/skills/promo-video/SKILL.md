@@ -23,12 +23,28 @@ crossfades are composed on top.
 # One command: headless display → record live tour → compose finished promo
 .claude/skills/promo-video/record_live.sh --lang es --out nestify_promo.mp4
 
-# English, with music, 4K-ish display, custom crossfade
-.claude/skills/promo-video/record_live.sh --lang en --size 1920x1080 --fps 60 \
+# English, with music, custom crossfade (wide 16:9 — YouTube / README / site)
+.claude/skills/promo-video/record_live.sh --lang en --fps 60 \
     --audio music.mp3 --transition 0.8 --out promo_en.mp4
+
+# Flashy vertical 4:5 cut for LinkedIn / social feeds
+.claude/skills/promo-video/record_live.sh --lang en --style linkedin \
+    --out nestify_linkedin.mp4
 ```
 
-Produces a ~25 s 1080p60 clip in under a minute.
+Produces a ~25 s clip in under a minute. `--style wide` (default) is 16:9 with
+title/outro cards; `--style linkedin` is **vertical 1080x1350** with a branded
+header, the live footage centered, kinetic section captions + "0X / 06" counter
+and stat lines, a punchy hook intro and a CTA outro — designed for muted
+in-feed autoplay (everything reads as text). Tune the hook/CTA/stat wording in
+`compose_linkedin()` / `LINKEDIN_STATS` in `build_promo.py`.
+
+To regenerate just the composition from already-recorded footage (no re-record):
+
+```bash
+python build_promo.py --live raw.mp4 --timeline timeline.json --lang en \
+    [--linkedin] --out promo.mp4
+```
 
 ### Prerequisites (live mode)
 
@@ -101,6 +117,9 @@ JSON spec scenes take `image`, `caption`, `motion`
   *box* size — use `iw`/`ih` for frame-relative positions. `drawtext` uses
   `w`/`h` for the frame.
 - **`enable=` commas must be escaped** inside a filter (`between(t\,a\,b)`).
+- **`drawtext` eats `%`.** A literal `%` (e.g. "83% yield") triggers `%{}`
+  expansion and the line silently fails to render. All `drawtext` calls set
+  `expansion=none` — keep it when adding text with `%`, `{`, or `\`.
 - **Clean exit under Xvfb.** `record_tour.py` `os._exit(0)`s after ffmpeg
   finalises the mp4, so a lingering Qt modal/timer can't hang the process.
 - **No window manager** honours `showFullScreen()` under Xvfb — set the window
