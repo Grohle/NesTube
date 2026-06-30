@@ -166,7 +166,7 @@ def main():
     ap.add_argument("--out", default="raw_tour.mp4")
     ap.add_argument("--timeline", default="timeline.json")
     ap.add_argument("--size", default="1920x1080")
-    ap.add_argument("--fps", type=int, default=60)
+    ap.add_argument("--fps", type=int, default=30)
     ap.add_argument("--lang", default="es")
     args = ap.parse_args()
     W, H = (int(x) for x in args.size.lower().split("x"))
@@ -200,9 +200,18 @@ def main():
 
     ff_cmd = [
         "ffmpeg", "-y", "-f", "x11grab", "-draw_mouse", "1",
+        # Tag every grabbed frame with its real capture time. Without this,
+        # x11grab assumes a perfectly uniform rate; when the encoder can't keep
+        # up (heavy renders) frames are dropped but the survivors are spaced
+        # evenly, so the footage timebase no longer matches wall-clock — and the
+        # wall-clock-based caption timeline drifts badly out of sync. With real
+        # timestamps, the CFR resample below reproduces true timing (freezing a
+        # frame where capture lagged) so footage time == tour time == timeline.
+        "-use_wallclock_as_timestamps", "1",
         "-framerate", str(args.fps), "-video_size", args.size,
         "-i", args.display, "-c:v", "libx264", "-preset", "ultrafast",
-        "-crf", "14", "-pix_fmt", "yuv420p", "-r", str(args.fps), args.out,
+        "-crf", "16", "-pix_fmt", "yuv420p", "-vsync", "cfr",
+        "-r", str(args.fps), args.out,
     ]
     driver = TourDriver(w, ff_cmd, args.fps, args.lang, args.timeline)
 

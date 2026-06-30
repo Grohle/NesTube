@@ -17,7 +17,7 @@ set -euo pipefail
 LANG_OPT=es
 OUT=nestify_promo_live.mp4
 SIZE=1920x1080
-FPS=60
+FPS=30
 AUDIO=""
 TRANSITION=0.7
 STYLE=wide   # wide (16:9 + cards) | linkedin (vertical 4:5, flashy)
