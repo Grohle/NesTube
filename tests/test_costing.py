@@ -8,8 +8,8 @@ import math
 
 import pytest
 
-from nestify.logic import area_seccion, perimetro_seccion, calcular_resultado
-from nestify.models import (
+from nestube.logic import area_seccion, perimetro_seccion, calcular_resultado
+from nestube.models import (
     ConfigPerfil, PerfilDimensiones, ParametrosMaterial, ParametrosManoObra,
     Corte, TipoPerfil,
 )

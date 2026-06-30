@@ -25,7 +25,7 @@ def real_openpyxl(monkeypatch):
         pytest.skip("openpyxl not available (only the test stub)")
     # Reload the export modules so their module-level `from openpyxl...` imports
     # bind to the real library, not the stub captured at first import.
-    for name in ("nestify.excel_import", "nestify.cuts_export"):
+    for name in ("nestube.excel_import", "nestube.cuts_export"):
         if name in sys.modules:
             try:
                 importlib.reload(sys.modules[name])
@@ -35,21 +35,21 @@ def real_openpyxl(monkeypatch):
 
 
 def test_save_template_no_multicellrange_crash(real_openpyxl):
-    from nestify.excel_import import save_template
-    p = os.path.join(tempfile.gettempdir(), "nestify_tpl_test.xlsx")
+    from nestube.excel_import import save_template
+    p = os.path.join(tempfile.gettempdir(), "nestube_tpl_test.xlsx")
     save_template(p)                      # must not raise TypeError(MultiCellRange)
     assert os.path.getsize(p) > 0
 
 
 def test_template_import_round_trip(real_openpyxl):
-    from nestify.excel_import import save_template, import_cuts_from_excel
-    p = os.path.join(tempfile.gettempdir(), "nestify_tpl_rt.xlsx")
+    from nestube.excel_import import save_template, import_cuts_from_excel
+    p = os.path.join(tempfile.gettempdir(), "nestube_tpl_rt.xlsx")
     save_template(p)
     wb = real_openpyxl.load_workbook(p)
     ws = wb.active
     ws.append(["Beam", 1500, 3, "Yes", "up", 45, "No", "", ""])
     ws.append(["Plate", 800, 2, "No", "", 0, "No", "", ""])
-    p2 = os.path.join(tempfile.gettempdir(), "nestify_tpl_rt_filled.xlsx")
+    p2 = os.path.join(tempfile.gettempdir(), "nestube_tpl_rt_filled.xlsx")
     wb.save(p2)
     cuts = import_cuts_from_excel(p2)
     assert [c.descripcion for c in cuts] == ["Beam", "Plate"]
@@ -57,8 +57,8 @@ def test_template_import_round_trip(real_openpyxl):
 
 
 def test_cuts_export_to_excel(real_openpyxl):
-    from nestify.models import Corte
-    from nestify.cuts_export import export_cuts_to_excel
-    p = os.path.join(tempfile.gettempdir(), "nestify_cuts_exp.xlsx")
+    from nestube.models import Corte
+    from nestube.cuts_export import export_cuts_to_excel
+    p = os.path.join(tempfile.gettempdir(), "nestube_cuts_exp.xlsx")
     export_cuts_to_excel(p, [Corte(descripcion="A", largo=1000.0, cantidad=2)])
     assert os.path.getsize(p) > 0

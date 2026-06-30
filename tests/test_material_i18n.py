@@ -7,8 +7,8 @@ materials pass through unchanged.
 """
 import pytest
 
-from nestify import i18n
-from nestify.naming import BASE_MATERIALS, canonical_material, localize_material
+from nestube import i18n
+from nestube.naming import BASE_MATERIALS, canonical_material, localize_material
 
 
 @pytest.fixture(autouse=True)

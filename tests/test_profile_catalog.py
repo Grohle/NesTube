@@ -12,9 +12,9 @@ import pytest
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 pytest.importorskip("PySide6.QtWidgets")
 
-from nestify import app_config, profile_catalog
-from nestify.app_config import AppPreferences
-from nestify.profile_geometry import GEOMETRY_TYPES
+from nestube import app_config, profile_catalog
+from nestube.app_config import AppPreferences
+from nestube.profile_geometry import GEOMETRY_TYPES
 
 
 @pytest.fixture(scope="module", autouse=True)

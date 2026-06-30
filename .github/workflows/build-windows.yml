@@ -32,37 +32,37 @@ jobs:
       - name: Install Inno Setup 6
         run: choco install innosetup -y --no-progress
 
-      - name: Build Nestify and installer
+      - name: Build NesTube and installer
         shell: pwsh
         run: |
-          python -m PyInstaller --noconfirm packaging/nestify.spec
-          if (-not (Test-Path "dist\Nestify\Nestify.exe")) { throw "PyInstaller output missing" }
-          $ver = python -c "from nestify import __version__; print(__version__)"
+          python -m PyInstaller --noconfirm packaging/nestube.spec
+          if (-not (Test-Path "dist\NesTube\NesTube.exe")) { throw "PyInstaller output missing" }
+          $ver = python -c "from nestube import __version__; print(__version__)"
           $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
           if (-not (Test-Path $iscc)) { $iscc = "$env:ProgramFiles\Inno Setup 6\ISCC.exe" }
           if (-not (Test-Path $iscc)) { throw "ISCC.exe not found after Inno Setup install" }
-          & $iscc "/DMyAppVersion=$ver" "packaging\nestify.iss"
-          $zip = "Nestify-$ver-windows.zip"
-          Compress-Archive -Path "dist\Nestify" -DestinationPath $zip -Force
-          Get-ChildItem "Nestify-*-setup.exe", "Nestify-*-windows.zip" | Format-Table Name, Length
+          & $iscc "/DMyAppVersion=$ver" "packaging\nestube.iss"
+          $zip = "NesTube-$ver-windows.zip"
+          Compress-Archive -Path "dist\NesTube" -DestinationPath $zip -Force
+          Get-ChildItem "NesTube-*-setup.exe", "NesTube-*-windows.zip" | Format-Table Name, Length
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: nestify-windows
+          name: nestube-windows
           path: |
-            Nestify-*-windows.zip
-            Nestify-*-setup.exe
+            NesTube-*-windows.zip
+            NesTube-*-setup.exe
 
       - name: Attach to GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
-          name: "Nestify ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}"
+          name: "NesTube ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}"
           body_path: RELEASE_NOTES.md
           files: |
-            Nestify-*-windows.zip
-            Nestify-*-setup.exe
+            NesTube-*-windows.zip
+            NesTube-*-setup.exe
           prerelease: true
           fail_on_unmatched_files: true
         env:

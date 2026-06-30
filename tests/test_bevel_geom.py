@@ -1,8 +1,8 @@
 """
 tests/test_bevel_geom.py — §21.3 bevel/miter collision geometry.
 
-The manual-placement collision path (nestify/bevel_geom.py) and the rendered /
-auto-nested polygon (nestify/nesting_engine.py) must describe the SAME contour
+The manual-placement collision path (nestube/bevel_geom.py) and the rendered /
+auto-nested polygon (nestube/nesting_engine.py) must describe the SAME contour
 for every orientation. The historical bug: corte_to_bevel negated the miter
 angles for flipped_v instead of mirroring the trapezoid, so a vertically
 flipped beveled piece's collision shape spilled outside [0, L] and disagreed
@@ -10,9 +10,9 @@ with the engine. These tests pin the two geometries together.
 """
 import pytest
 
-from nestify.models import Corte
-from nestify.nesting_engine import _build_base_polygon, _build_all_orientations
-from nestify.bevel_geom import (
+from nestube.models import Corte
+from nestube.nesting_engine import _build_base_polygon, _build_all_orientations
+from nestube.bevel_geom import (
     BevelPiece, corte_to_bevel, vertices_local, min_x_extent, max_x_extent,
     min_x_after_anchor, contour_polygons_collide, snap_positions_after_pieces,
 )

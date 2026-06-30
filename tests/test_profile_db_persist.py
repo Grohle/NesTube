@@ -7,7 +7,7 @@ import pytest
 
 @pytest.fixture()
 def db(tmp_path):
-    from nestify.database import GeometryDB
+    from nestube.database import GeometryDB
     return GeometryDB(str(tmp_path / "test_geo.db"))
 
 

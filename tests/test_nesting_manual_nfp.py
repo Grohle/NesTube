@@ -27,7 +27,7 @@ def qapp():
 
 
 def _mk_corte(desc, largo, qty, b1=0.0, b2=0.0):
-    from nestify.models import Corte
+    from nestube.models import Corte
     c = Corte(descripcion=desc, largo=largo, cantidad=qty)
     if b1 and hasattr(c, "inglete1"):
         c.inglete1 = True
@@ -39,9 +39,9 @@ def _mk_corte(desc, largo, qty, b1=0.0, b2=0.0):
 
 
 def _tab(cortes, kerf=3.0, margin=0.0, sh=100.0, common=False):
-    from nestify.models import AppState
-    from nestify.context_sync import ensure_material_contexts
-    from nestify.ui_qt.tab_nesting import TabNesting
+    from nestube.models import AppState
+    from nestube.context_sync import ensure_material_contexts
+    from nestube.ui_qt.tab_nesting import TabNesting
     st = AppState()
     st.longitud_barra = 6000.0
     st.perdida_corte = kerf
@@ -65,7 +65,7 @@ def _tab(cortes, kerf=3.0, margin=0.0, sh=100.0, common=False):
 
 def _engine_layout(tab, cortes):
     """Place pieces via the engine's synchronous greedy NFP pass (no worker)."""
-    from nestify.nesting_engine import (
+    from nestube.nesting_engine import (
         NestingParams, build_nesting_piece, _nest_advanced_greedy_pass)
     sh = tab._section_height_mm()
     _, _, eff_kerf, _, _, common = tab._placement_params()
@@ -116,7 +116,7 @@ def test_replace_same_spot_exact(qapp):
 
 
 def test_flush_gap_equals_kerf(qapp):
-    from nestify.ui_qt.tab_nesting import PlacedPiece
+    from nestube.ui_qt.tab_nesting import PlacedPiece
     tab = _tab([_mk_corte("S", 1000.0, 2)], kerf=4.0)
     corte = tab._pieces[0].corte
     _, _, eff_kerf, _, _, _ = tab._placement_params()

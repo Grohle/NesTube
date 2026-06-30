@@ -1,8 +1,8 @@
-"""Tests for nestify.dxf_cache (D7)."""
+"""Tests for nestube.dxf_cache (D7)."""
 import pytest
 from pathlib import Path
-from nestify.models import Corte
-from nestify.dxf_cache import piece_dxf_path, load_piece_contour, save_piece_contour, auto_generate_and_save
+from nestube.models import Corte
+from nestube.dxf_cache import piece_dxf_path, load_piece_contour, save_piece_contour, auto_generate_and_save
 
 
 def _make_corte(**kwargs) -> Corte:
@@ -59,7 +59,7 @@ def test_piece_dxf_path_flip_tags():
 
 def test_round_trip_save_load(tmp_path):
     """Save then load returns the same vertex coordinates."""
-    import nestify.dxf_cache as dc
+    import nestube.dxf_cache as dc
     orig = dc._DXF_DIR
     dc._DXF_DIR = tmp_path / "dxf"
     dc._DXF_DIR.mkdir()
@@ -86,7 +86,7 @@ def test_load_returns_none_when_file_absent():
 
 def test_auto_generate_returns_4_vertices(tmp_path):
     """auto_generate_and_save returns 4 trapezoid vertices from bevel_geom."""
-    import nestify.dxf_cache as dc
+    import nestube.dxf_cache as dc
     orig = dc._DXF_DIR
     dc._DXF_DIR = tmp_path / "dxf"
     dc._DXF_DIR.mkdir()
@@ -104,7 +104,7 @@ def test_auto_generate_returns_4_vertices(tmp_path):
 
 def test_auto_generate_writes_file(tmp_path):
     """auto_generate_and_save actually creates the DXF file on disk."""
-    import nestify.dxf_cache as dc
+    import nestube.dxf_cache as dc
     orig = dc._DXF_DIR
     dc._DXF_DIR = tmp_path / "dxf"
     dc._DXF_DIR.mkdir()
@@ -119,7 +119,7 @@ def test_auto_generate_writes_file(tmp_path):
 
 def test_round_trip_with_flips(tmp_path):
     """Round-trip save/load works for all four flip combinations."""
-    import nestify.dxf_cache as dc
+    import nestube.dxf_cache as dc
     orig = dc._DXF_DIR
     dc._DXF_DIR = tmp_path / "dxf"
     dc._DXF_DIR.mkdir()

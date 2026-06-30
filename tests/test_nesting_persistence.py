@@ -27,7 +27,7 @@ def qapp():
 
 def _place(tab, pi, x, *, fv=False, bar_len=6000.0):
     """Replace the tab's bars with a single bar holding one placed piece."""
-    from nestify.ui_qt.tab_nesting import PlacedPiece
+    from nestube.ui_qt.tab_nesting import PlacedPiece
     poly = tab._compute_poly_local(pi.corte, False, fv)
     tab._bars = [[PlacedPiece(corte=pi.corte, bar_index=0, x_offset=x,
                               flipped_h=False, flipped_v=fv,
@@ -37,9 +37,9 @@ def _place(tab, pi, x, *, fv=False, bar_len=6000.0):
 
 
 def _build_two_context_tab():
-    from nestify.models import AppState, Corte, MaterialContext
-    from nestify.context_sync import ensure_material_contexts
-    from nestify.ui_qt.tab_nesting import TabNesting
+    from nestube.models import AppState, Corte, MaterialContext
+    from nestube.context_sync import ensure_material_contexts
+    from nestube.ui_qt.tab_nesting import TabNesting
 
     st = AppState()
     st.longitud_barra = 6000.0
@@ -118,8 +118,8 @@ def test_contexts_keep_independent_layouts(qapp):
 def test_only_remaining_preserves_manual_placement(qapp):
     """'Only Remaining' (simple 1D) keeps manual placements and nests the rest
     without duplicating or dropping pieces."""
-    from nestify.models import AppState, Corte
-    from nestify.ui_qt.tab_nesting import TabNesting
+    from nestube.models import AppState, Corte
+    from nestube.ui_qt.tab_nesting import TabNesting
 
     st = AppState()
     st.longitud_barra = 6000.0

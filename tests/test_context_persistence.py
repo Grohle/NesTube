@@ -6,8 +6,8 @@ test_context_persistence.py — regression for review-pass data-loss fixes.
 - A user tab rename must persist: it is stored in custom_display_name, the field
   context_tab_label() honours (ctx.name alone was ignored once a profile was set).
 """
-from nestify.models import MaterialContext
-from nestify.naming import context_tab_label
+from nestube.models import MaterialContext
+from nestube.naming import context_tab_label
 
 
 def test_custom_fields_round_trip():

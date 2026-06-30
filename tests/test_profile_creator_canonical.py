@@ -13,7 +13,7 @@ import pytest
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 pytest.importorskip("PySide6.QtWidgets")
 
-from nestify.ui_qt.dialogs.profile_creator import ProfileCreator
+from nestube.ui_qt.dialogs.profile_creator import ProfileCreator
 
 
 @pytest.fixture(scope="module", autouse=True)

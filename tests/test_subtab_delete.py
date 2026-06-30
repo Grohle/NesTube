@@ -23,7 +23,7 @@ def qapp():
 
 
 def test_remove_tab_keeps_active_on_same_tab(qapp):
-    from nestify.ui_qt.widgets.material_subtabs import MaterialSubTabs
+    from nestube.ui_qt.widgets.material_subtabs import MaterialSubTabs
     # Delete a tab BEFORE the active one → active must still point to the same tab.
     w = MaterialSubTabs()
     w.set_tabs(["A", "B", "C"], active=1)   # B active
@@ -45,10 +45,10 @@ def test_remove_tab_keeps_active_on_same_tab(qapp):
 
 
 def test_delete_subtab_preserves_survivor_cuts(qapp):
-    from nestify.models import AppState, Corte, MaterialContext
-    from nestify.context_sync import (
+    from nestube.models import AppState, Corte, MaterialContext
+    from nestube.context_sync import (
         ensure_material_contexts, save_cuts_tab_to_context, load_context_to_state)
-    from nestify.ui_qt.tab_cortes import TabCortes
+    from nestube.ui_qt.tab_cortes import TabCortes
 
     st = AppState()
     st.material_contexts = [MaterialContext(), MaterialContext(), MaterialContext()]

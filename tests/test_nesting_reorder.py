@@ -22,8 +22,8 @@ def qapp():
 
 
 def _three_bar_tab():
-    from nestify.models import AppState, Corte
-    from nestify.ui_qt.tab_nesting import TabNesting, PlacedPiece
+    from nestube.models import AppState, Corte
+    from nestube.ui_qt.tab_nesting import TabNesting, PlacedPiece
 
     st = AppState()
     st.longitud_barra = 6000.0

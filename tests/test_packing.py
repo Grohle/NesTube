@@ -6,8 +6,8 @@ non-zero gap (kerf + margin) pushed its effective length past the bar.
 """
 import pytest
 
-from nestify.logic import calcular_barras, eficiencia_barras
-from nestify.models import Corte
+from nestube.logic import calcular_barras, eficiencia_barras
+from nestube.models import Corte
 
 
 def _corte(largo: float, cantidad: int = 1, desc: str = "") -> Corte:

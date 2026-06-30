@@ -1,6 +1,6 @@
-## Nestify 1.0.0-pre-alpha.1
+## NesTube 1.0.0-pre-alpha.1
 
-**First public pre-release of Nestify — bar, tube, and profile cutting optimizer for metal fabrication shops.**
+**First public pre-release of NesTube — bar, tube, and profile cutting optimizer for metal fabrication shops.**
 
 > **Status:** pre-alpha. The core works, but interfaces and file formats may still change before 1.0.0.
 
@@ -18,12 +18,12 @@
 
 ### Installation
 
-**Windows (installer):** run `Nestify-1.0.0-pre-alpha.1-setup.exe`.  
+**Windows (installer):** run `NesTube-1.0.0-pre-alpha.1-setup.exe`.  
 ⚠️ SmartScreen may warn that the binary is unsigned — choose **More info → Run anyway**.
 
-**Windows (portable):** extract `Nestify-1.0.0-pre-alpha.1-windows.zip` and run `Nestify.exe`.
+**Windows (portable):** extract `NesTube-1.0.0-pre-alpha.1-windows.zip` and run `NesTube.exe`.
 
-**Linux (portable):** extract `Nestify-1.0.0-pre-alpha.1-linux.tar.gz` and run `./Nestify/Nestify`.  
+**Linux (portable):** extract `NesTube-1.0.0-pre-alpha.1-linux.tar.gz` and run `./NesTube/NesTube`.  
 Requires: `libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libegl1`  
 On Ubuntu/Debian: `sudo apt install libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libegl1`
 
@@ -36,13 +36,13 @@ On Ubuntu/Debian: `sudo apt install libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor
 
 ### Reporting issues
 
-Open an issue at [github.com/Grohle/Nestify/issues](https://github.com/Grohle/Nestify/issues).
+Open an issue at [github.com/Grohle/NesTube/issues](https://github.com/Grohle/NesTube/issues).
 
 ---
 
-## Nestify 1.0.0-pre-alpha.1 (Español)
+## NesTube 1.0.0-pre-alpha.1 (Español)
 
-**Primera pre-versión pública de Nestify — optimizador de corte de barras, tubos y perfiles para talleres metálicos.**
+**Primera pre-versión pública de NesTube — optimizador de corte de barras, tubos y perfiles para talleres metálicos.**
 
 > **Estado:** pre-alpha. El núcleo funciona, pero las interfaces y formatos de archivo pueden cambiar antes de la versión 1.0.0.
 
@@ -60,12 +60,12 @@ Open an issue at [github.com/Grohle/Nestify/issues](https://github.com/Grohle/Ne
 
 ### Instalación
 
-**Windows (instalador):** ejecuta `Nestify-1.0.0-pre-alpha.1-setup.exe`.  
+**Windows (instalador):** ejecuta `NesTube-1.0.0-pre-alpha.1-setup.exe`.  
 ⚠️ SmartScreen puede avisar de que el binario no está firmado — elige **Más información → Ejecutar de todas formas**.
 
-**Windows (portable):** extrae `Nestify-1.0.0-pre-alpha.1-windows.zip` y ejecuta `Nestify.exe`.
+**Windows (portable):** extrae `NesTube-1.0.0-pre-alpha.1-windows.zip` y ejecuta `NesTube.exe`.
 
-**Linux (portable):** extrae `Nestify-1.0.0-pre-alpha.1-linux.tar.gz` y ejecuta `./Nestify/Nestify`.  
+**Linux (portable):** extrae `NesTube-1.0.0-pre-alpha.1-linux.tar.gz` y ejecuta `./NesTube/NesTube`.  
 Dependencias: `libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libegl1`  
 En Ubuntu/Debian: `sudo apt install libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libegl1`
 
@@ -78,4 +78,4 @@ En Ubuntu/Debian: `sudo apt install libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor
 
 ### Reportar problemas
 
-Abre un issue en [github.com/Grohle/Nestify/issues](https://github.com/Grohle/Nestify/issues).
+Abre un issue en [github.com/Grohle/NesTube/issues](https://github.com/Grohle/NesTube/issues).

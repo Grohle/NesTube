@@ -14,7 +14,7 @@ import pytest
 
 @pytest.fixture()
 def db(tmp_path):
-    from nestify.database import GeometryDB
+    from nestube.database import GeometryDB
     return GeometryDB(str(tmp_path / "test_geo.db"))
 
 
@@ -63,7 +63,7 @@ def test_migration_adds_column_to_existing_db(tmp_path):
     conn.close()
 
     # Open via GeometryDB — _migrate_materials_table should add the column.
-    from nestify.database import GeometryDB
+    from nestube.database import GeometryDB
     db = GeometryDB(db_path)
     rows = db.get_all_materials()
     assert len(rows) == 1

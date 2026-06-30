@@ -10,8 +10,8 @@ test_nesting_optimization_params.py — the advanced-nesting optimization parame
 """
 import random
 
-from nestify.models import Corte
-from nestify.nesting_engine import (
+from nestube.models import Corte
+from nestube.nesting_engine import (
     NestingParams, build_nesting_piece, nest_advanced_timed, _score,
 )
 
