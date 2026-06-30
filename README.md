@@ -4,7 +4,13 @@
 
 **[English](#english)** · **[Español](#español)**
 
-![Nestify nesting layout](docs/img/en/nesting.png)
+<p align="center">
+  <a href="docs/media/nestify_demo.mp4">
+    <img src="docs/media/nestify_demo.gif" alt="Nestify — live walkthrough" width="900">
+  </a>
+</p>
+
+<p align="center"><sub>▶ Live walkthrough — click for full-quality video</sub></p>
 
 > **Status:** `1.0.0-pre-alpha.1` — first public pre-release. The core works, but
 > interfaces and file formats may still change before `1.0.0`.
