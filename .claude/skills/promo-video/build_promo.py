@@ -241,6 +241,69 @@ def concat_xfade(clips: List[Path], durations: List[float], spec: Spec, out: Pat
     _run(cmd)
 
 
+def burn_captions(raw: str, segments: list, spec: Spec, font: str, out: Path) -> None:
+    """Burn timed lower-third captions onto the live tour footage."""
+    w, h = spec.width, spec.height
+    fs = max(24, h // 28)
+    pad = fs // 2
+    ty, tx = "h*0.88", "w*0.06"
+    bg, accent = _hex(spec.bg), _hex(spec.accent)
+    vf: List[str] = [f"scale={w}:{h}", "setsar=1"]
+    for i, (s, e, cap) in enumerate(segments):
+        if not cap:
+            continue
+        cf = out.parent / f"livecap{i}.txt"
+        cf.write_text(cap, encoding="utf-8")
+        en = f"between(t\\,{s:.3f}\\,{e:.3f})"
+        vf.append(
+            f"drawbox=x=(iw*0.06-{pad}-12):y=(ih*0.88-{pad}):w=8:"
+            f"h=({fs}+{pad*2}):color={accent}:t=fill:enable='{en}'"
+        )
+        vf.append(
+            f"drawtext=fontfile='{font}':textfile='{cf}':fontcolor={_hex(spec.text)}:"
+            f"fontsize={fs}:x={tx}:y={ty}:box=1:boxcolor={bg}@0.6:"
+            f"boxborderw={pad}:enable='{en}'"
+        )
+    vf.append("format=yuv420p")
+    _run([
+        "ffmpeg", "-y", "-i", raw, "-vf", ",".join(vf), "-an",
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "18",
+        "-r", str(spec.fps), str(out),
+    ])
+
+
+def compose_live(raw: str, timeline_path: str, spec: Spec, out_path: str) -> None:
+    """Wrap live tour footage with a title card, outro card and captions."""
+    if not shutil.which("ffmpeg"):
+        raise SystemExit("ffmpeg not found on PATH.")
+    tl = json.loads(Path(timeline_path).read_text(encoding="utf-8"))
+    spec.fps = int(tl.get("fps", spec.fps))
+    live_dur = float(tl.get("duration", 0.0))
+    segments = [(float(a), float(b), c) for a, b, c in tl.get("segments", [])]
+    font = _font(spec)
+    with tempfile.TemporaryDirectory(prefix="promo_live_") as td:
+        tmp = Path(td)
+        live = tmp / "live_cap.mp4"
+        burn_captions(raw, segments, spec, font, live)
+
+        (tmp / "t.txt").write_text(spec.title, encoding="utf-8")
+        (tmp / "s.txt").write_text(spec.subtitle, encoding="utf-8")
+        title = tmp / "title.mp4"
+        render_card(tmp / "t.txt", tmp / "s.txt", spec, font, title)
+
+        (tmp / "ot.txt").write_text(spec.outro_title, encoding="utf-8")
+        (tmp / "os.txt").write_text(spec.outro_subtitle, encoding="utf-8")
+        outro = tmp / "outro.mp4"
+        render_card(tmp / "ot.txt", tmp / "os.txt", spec, font, outro)
+
+        clips = [title, live, outro]
+        durations = [spec.card_seconds, live_dur, spec.card_seconds]
+        concat_xfade(clips, durations, spec, Path(out_path))
+    total = sum(durations) - spec.transition * (len(clips) - 1)
+    print(f"✓ Wrote {out_path}  (live tour + title/outro, ~{total:.1f}s, "
+          f"{spec.width}x{spec.height}@{spec.fps})")
+
+
 def auto_spec(args) -> Spec:
     img_dir = Path(args.img_dir) if args.img_dir else (REPO_ROOT / "docs" / "img" / args.lang)
     if not img_dir.is_dir():
@@ -313,6 +376,8 @@ def build(spec: Spec, out_path: str) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Build a Nestify promo video.")
+    ap.add_argument("--live", help="Live tour footage (raw_tour.mp4 from record_tour.py).")
+    ap.add_argument("--timeline", help="timeline.json that pairs with --live.")
     ap.add_argument("--spec", help="JSON scene spec (full control). Overrides auto build.")
     ap.add_argument("--lang", choices=["es", "en"], default="es")
     ap.add_argument("--img-dir", help="Folder of screenshots (default docs/img/<lang>)")
@@ -324,6 +389,17 @@ def main() -> None:
     ap.add_argument("--resolution", default="1920x1080",
                     type=lambda s: tuple(int(x) for x in s.lower().split("x")))
     args = ap.parse_args()
+
+    if args.live:
+        if not args.timeline:
+            raise SystemExit("--live requires --timeline")
+        sub = ("Optimización de corte de barras, tubos y perfiles" if args.lang == "es"
+               else "Bar, tube & profile cutting optimizer")
+        spec = Spec(scenes=[], subtitle=sub, transition=args.transition,
+                    audio=args.audio, fps=args.fps,
+                    width=args.resolution[0], height=args.resolution[1])
+        compose_live(args.live, args.timeline, spec, args.out)
+        return
 
     spec = load_spec(args.spec, args) if args.spec else auto_spec(args)
     build(spec, args.out)
