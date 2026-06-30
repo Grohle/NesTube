@@ -20,7 +20,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-sys.path.insert(0, "/home/user/NesTube")
+sys.path.insert(0, "/home/user/Nestify")
 
 from PySide6.QtCore import Qt, QTimer, QElapsedTimer, QPointF
 from PySide6.QtGui import QCursor
