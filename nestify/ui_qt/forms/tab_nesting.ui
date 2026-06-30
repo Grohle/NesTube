@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TabNesting</class>
+ <widget class="QWidget" name="TabNesting">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>900</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <layout class="QVBoxLayout" name="main_layout">
+   <property name="leftMargin"><number>0</number></property>
+   <property name="topMargin"><number>0</number></property>
+   <property name="rightMargin"><number>0</number></property>
+   <property name="bottomMargin"><number>0</number></property>
+   <property name="spacing"><number>0</number></property>
+
+   <!-- toolbar_frame -->
+   <item>
+    <widget class="QFrame" name="toolbar_frame">
+     <layout class="QVBoxLayout" name="toolbar_outer_layout">
+      <property name="leftMargin"><number>0</number></property>
+      <property name="topMargin"><number>0</number></property>
+      <property name="rightMargin"><number>0</number></property>
+      <property name="bottomMargin"><number>0</number></property>
+      <property name="spacing"><number>0</number></property>
+
+      <!-- Row 1 -->
+      <item>
+       <widget class="QWidget" name="toolbar_row1" native="true">
+        <layout class="QHBoxLayout" name="row1_layout">
+         <property name="leftMargin"><number>6</number></property>
+         <property name="topMargin"><number>4</number></property>
+         <property name="rightMargin"><number>6</number></property>
+         <property name="bottomMargin"><number>4</number></property>
+         <property name="spacing"><number>4</number></property>
+
+         <item>
+          <widget class="QPushButton" name="save_btn">
+           <property name="minimumSize"><size><width>30</width><height>30</height></size></property>
+           <property name="maximumSize"><size><width>30</width><height>30</height></size></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="clear_btn">
+           <property name="minimumSize"><size><width>30</width><height>30</height></size></property>
+           <property name="maximumSize"><size><width>30</width><height>30</height></size></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="export_btn">
+           <property name="minimumSize"><size><width>30</width><height>30</height></size></property>
+           <property name="maximumSize"><size><width>30</width><height>30</height></size></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="sep1">
+           <property name="frameShape"><enum>QFrame::Shape::VLine</enum></property>
+           <property name="minimumSize"><size><width>2</width><height>0</height></size></property>
+           <property name="maximumSize"><size><width>2</width><height>16777215</height></size></property>
+          </widget>
+         </item>
+
+         <!-- mode_toggle and stock_toggle inserted in Python via insertWidget -->
+
+         <item>
+          <widget class="QFrame" name="sep2">
+           <property name="frameShape"><enum>QFrame::Shape::VLine</enum></property>
+           <property name="minimumSize"><size><width>2</width><height>0</height></size></property>
+           <property name="maximumSize"><size><width>2</width><height>16777215</height></size></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="add_bar_btn">
+           <property name="minimumSize"><size><width>0</width><height>30</height></size></property>
+           <property name="maximumSize"><size><width>16777215</width><height>30</height></size></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="rem_toolbar_btn">
+           <property name="minimumSize"><size><width>0</width><height>30</height></size></property>
+           <property name="maximumSize"><size><width>16777215</width><height>30</height></size></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="sep3">
+           <property name="frameShape"><enum>QFrame::Shape::VLine</enum></property>
+           <property name="minimumSize"><size><width>2</width><height>0</height></size></property>
+           <property name="maximumSize"><size><width>2</width><height>16777215</height></size></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="rotate_left_btn">
+           <property name="minimumSize"><size><width>30</width><height>30</height></size></property>
+           <property name="maximumSize"><size><width>30</width><height>30</height></size></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="flip_v_btn">
+           <property name="minimumSize"><size><width>30</width><height>30</height></size></property>
+           <property name="maximumSize"><size><width>30</width><height>30</height></size></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="flip_h_btn">
+           <property name="minimumSize"><size><width>30</width><height>30</height></size></property>
+           <property name="maximumSize"><size><width>30</width><height>30</height></size></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="rotate_right_btn">
+           <property name="minimumSize"><size><width>30</width><height>30</height></size></property>
+           <property name="maximumSize"><size><width>30</width><height>30</height></size></property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="row1_spacer">
+           <property name="orientation"><enum>Qt::Horizontal</enum></property>
+           <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="auto_nest_btn">
+           <property name="minimumSize"><size><width>150</width><height>30</height></size></property>
+           <property name="maximumSize"><size><width>16777215</width><height>30</height></size></property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+
+      <!-- Row 2 -->
+      <item>
+       <widget class="QWidget" name="toolbar_row2" native="true">
+        <layout class="QHBoxLayout" name="row2_layout">
+         <property name="leftMargin"><number>6</number></property>
+         <property name="topMargin"><number>4</number></property>
+         <property name="rightMargin"><number>6</number></property>
+         <property name="bottomMargin"><number>4</number></property>
+         <property name="spacing"><number>6</number></property>
+
+         <item>
+          <widget class="QLabel" name="lbl_kerf">
+           <property name="text"><string>Kerf</string></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="tb_kerf">
+           <property name="minimumSize"><size><width>44</width><height>30</height></size></property>
+           <property name="maximumSize"><size><width>44</width><height>30</height></size></property>
+           <property name="text"><string>2.0</string></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_margin">
+           <property name="text"><string>Margin</string></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="tb_margin">
+           <property name="minimumSize"><size><width>44</width><height>30</height></size></property>
+           <property name="maximumSize"><size><width>44</width><height>30</height></size></property>
+           <property name="text"><string>0</string></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_bar_len">
+           <property name="text"><string>Bar length</string></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="tb_bar_len">
+           <property name="minimumSize"><size><width>64</width><height>30</height></size></property>
+           <property name="maximumSize"><size><width>64</width><height>30</height></size></property>
+           <property name="text"><string>6000</string></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_height">
+           <property name="text"><string>Height</string></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="tb_height">
+           <property name="minimumSize"><size><width>80</width><height>30</height></size></property>
+           <property name="maximumSize"><size><width>80</width><height>30</height></size></property>
+          </widget>
+         </item>
+
+         <!-- common_toggle and snap_toggle inserted in Python via insertWidget -->
+
+         <item>
+          <widget class="QFrame" name="sep4">
+           <property name="frameShape"><enum>QFrame::Shape::VLine</enum></property>
+           <property name="minimumSize"><size><width>2</width><height>0</height></size></property>
+           <property name="maximumSize"><size><width>2</width><height>16777215</height></size></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="opt_combo">
+           <property name="minimumSize"><size><width>96</width><height>30</height></size></property>
+           <property name="maximumSize"><size><width>96</width><height>30</height></size></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="strategy_combo">
+           <property name="minimumSize"><size><width>170</width><height>30</height></size></property>
+           <property name="maximumSize"><size><width>16777215</width><height>30</height></size></property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="row2_spacer">
+           <property name="orientation"><enum>Qt::Horizontal</enum></property>
+           <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
+   <!-- info_bar -->
+   <item>
+    <widget class="QWidget" name="info_bar" native="true">
+     <layout class="QHBoxLayout" name="info_bar_layout">
+      <property name="leftMargin"><number>8</number></property>
+      <property name="topMargin"><number>0</number></property>
+      <property name="rightMargin"><number>8</number></property>
+      <property name="bottomMargin"><number>0</number></property>
+      <item>
+       <widget class="QLabel" name="qty_lbl">
+        <property name="text"><string/>
+        </property>
+        <property name="visible"><bool>false</bool></property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="info_spacer">
+        <property name="orientation"><enum>Qt::Horizontal</enum></property>
+        <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="status_lbl">
+        <property name="text"><string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="delete_btn">
+        <property name="minimumSize"><size><width>0</width><height>24</height></size></property>
+        <property name="maximumSize"><size><width>16777215</width><height>24</height></size></property>
+        <property name="visible"><bool>false</bool></property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="remove_btn">
+        <property name="minimumSize"><size><width>0</width><height>24</height></size></property>
+        <property name="maximumSize"><size><width>16777215</width><height>24</height></size></property>
+        <property name="visible"><bool>false</bool></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
+   <!-- splitter -->
+   <item>
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation"><enum>Qt::Horizontal</enum></property>
+     <property name="childrenCollapsible"><bool>true</bool></property>
+
+     <!-- pieces_panel -->
+     <widget class="QWidget" name="pieces_panel">
+      <property name="minimumSize"><size><width>160</width><height>0</height></size></property>
+      <property name="maximumSize"><size><width>280</width><height>16777215</height></size></property>
+      <layout class="QVBoxLayout" name="pieces_panel_layout">
+       <property name="leftMargin"><number>0</number></property>
+       <property name="topMargin"><number>0</number></property>
+       <property name="rightMargin"><number>0</number></property>
+       <property name="bottomMargin"><number>0</number></property>
+       <property name="spacing"><number>0</number></property>
+       <item>
+        <widget class="QFrame" name="pieces_hdr_frame">
+         <layout class="QVBoxLayout" name="pieces_hdr_layout">
+          <property name="leftMargin"><number>8</number></property>
+          <property name="topMargin"><number>6</number></property>
+          <property name="rightMargin"><number>8</number></property>
+          <property name="bottomMargin"><number>6</number></property>
+          <item>
+           <widget class="QLabel" name="sidebar_title">
+            <property name="text"><string>PIECES REMAINING</string></property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="filter_row" native="true">
+            <layout class="QHBoxLayout" name="filter_row_layout">
+             <property name="leftMargin"><number>0</number></property>
+             <property name="topMargin"><number>0</number></property>
+             <property name="rightMargin"><number>0</number></property>
+             <property name="bottomMargin"><number>0</number></property>
+             <property name="spacing"><number>4</number></property>
+             <item>
+              <widget class="QPushButton" name="filter_all_btn">
+               <property name="text"><string>All</string></property>
+               <property name="minimumSize"><size><width>0</width><height>20</height></size></property>
+               <property name="maximumSize"><size><width>16777215</width><height>20</height></size></property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="filter_complete_btn">
+               <property name="text"><string>Complete</string></property>
+               <property name="minimumSize"><size><width>0</width><height>20</height></size></property>
+               <property name="maximumSize"><size><width>16777215</width><height>20</height></size></property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="filter_incomplete_btn">
+               <property name="text"><string>Incomplete</string></property>
+               <property name="minimumSize"><size><width>0</width><height>20</height></size></property>
+               <property name="maximumSize"><size><width>16777215</width><height>20</height></size></property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QScrollArea" name="pieces_scroll">
+         <property name="widgetResizable"><bool>true</bool></property>
+         <property name="frameShape"><enum>QFrame::Shape::NoFrame</enum></property>
+         <widget class="QWidget" name="sidebar_container">
+          <property name="geometry">
+           <rect><x>0</x><y>0</y><width>160</width><height>300</height></rect>
+          </property>
+          <layout class="QVBoxLayout" name="sidebar_layout">
+           <property name="leftMargin"><number>4</number></property>
+           <property name="topMargin"><number>4</number></property>
+           <property name="rightMargin"><number>4</number></property>
+           <property name="bottomMargin"><number>4</number></property>
+           <property name="spacing"><number>2</number></property>
+           <item>
+            <spacer name="sidebar_stretch">
+             <property name="orientation"><enum>Qt::Vertical</enum></property>
+             <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+
+     <!-- NestingView inserted in Python at index 1 -->
+
+     <!-- bars_panel -->
+     <widget class="QWidget" name="bars_panel">
+      <property name="minimumSize"><size><width>140</width><height>0</height></size></property>
+      <property name="maximumSize"><size><width>260</width><height>16777215</height></size></property>
+      <layout class="QVBoxLayout" name="bars_panel_layout">
+       <property name="leftMargin"><number>0</number></property>
+       <property name="topMargin"><number>0</number></property>
+       <property name="rightMargin"><number>0</number></property>
+       <property name="bottomMargin"><number>0</number></property>
+       <property name="spacing"><number>0</number></property>
+       <item>
+        <widget class="QFrame" name="bars_hdr_frame">
+         <layout class="QHBoxLayout" name="bars_hdr_layout">
+          <property name="leftMargin"><number>6</number></property>
+          <property name="topMargin"><number>4</number></property>
+          <property name="rightMargin"><number>6</number></property>
+          <property name="bottomMargin"><number>4</number></property>
+          <item>
+           <widget class="QLabel" name="bars_hdr_title">
+            <property name="text"><string>BARS</string></property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="bars_hdr_spacer">
+            <property name="orientation"><enum>Qt::Horizontal</enum></property>
+            <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="show_all_btn">
+            <property name="minimumSize"><size><width>0</width><height>30</height></size></property>
+            <property name="maximumSize"><size><width>16777215</width><height>30</height></size></property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QScrollArea" name="bars_scroll">
+         <property name="widgetResizable"><bool>true</bool></property>
+         <property name="frameShape"><enum>QFrame::Shape::NoFrame</enum></property>
+         <widget class="QWidget" name="bars_container">
+          <property name="geometry">
+           <rect><x>0</x><y>0</y><width>140</width><height>300</height></rect>
+          </property>
+          <layout class="QVBoxLayout" name="bars_layout">
+           <property name="leftMargin"><number>4</number></property>
+           <property name="topMargin"><number>4</number></property>
+           <property name="rightMargin"><number>4</number></property>
+           <property name="bottomMargin"><number>4</number></property>
+           <property name="spacing"><number>2</number></property>
+           <item>
+            <spacer name="bars_stretch">
+             <property name="orientation"><enum>Qt::Vertical</enum></property>
+             <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="remnant_panel">
+         <property name="visible"><bool>false</bool></property>
+         <property name="minimumSize"><size><width>0</width><height>130</height></size></property>
+         <layout class="QVBoxLayout" name="remnant_panel_layout">
+          <property name="leftMargin"><number>6</number></property>
+          <property name="topMargin"><number>6</number></property>
+          <property name="rightMargin"><number>6</number></property>
+          <property name="bottomMargin"><number>6</number></property>
+          <property name="spacing"><number>4</number></property>
+          <item>
+           <widget class="QLabel" name="rem_title">
+            <property name="text"><string>REMNANTS</string></property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="rem_row" native="true">
+            <layout class="QGridLayout" name="rem_row_layout">
+             <property name="leftMargin"><number>0</number></property>
+             <property name="topMargin"><number>0</number></property>
+             <property name="rightMargin"><number>0</number></property>
+             <property name="bottomMargin"><number>0</number></property>
+             <property name="horizontalSpacing"><number>6</number></property>
+             <property name="verticalSpacing"><number>4</number></property>
+             <item row="0" column="0">
+              <widget class="QLabel" name="rem_min_lbl">
+               <property name="text"><string>Min length</string></property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="remnant_min_entry">
+               <property name="minimumSize"><size><width>56</width><height>30</height></size></property>
+               <property name="maximumSize"><size><width>16777215</width><height>30</height></size></property>
+               <property name="text"><string>1000</string></property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="rem_margin_lbl">
+               <property name="text"><string>Margin</string></property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="rem_margin_entry">
+               <property name="minimumSize"><size><width>56</width><height>30</height></size></property>
+               <property name="maximumSize"><size><width>16777215</width><height>30</height></size></property>
+               <property name="text"><string>0</string></property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QPushButton" name="rem_refresh_btn">
+               <property name="minimumSize"><size><width>30</width><height>30</height></size></property>
+               <property name="maximumSize"><size><width>30</width><height>30</height></size></property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QPushButton" name="rem_apply_btn">
+               <property name="minimumSize"><size><width>0</width><height>30</height></size></property>
+               <property name="maximumSize"><size><width>16777215</width><height>30</height></size></property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="remnant_list_lbl">
+            <property name="wordWrap"><bool>true</bool></property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

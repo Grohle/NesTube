@@ -1,0 +1,736 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TabPerfiles</class>
+ <widget class="QWidget" name="TabPerfiles">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>860</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <layout class="QVBoxLayout" name="main_layout">
+   <property name="leftMargin"><number>0</number></property>
+   <property name="topMargin"><number>0</number></property>
+   <property name="rightMargin"><number>0</number></property>
+   <property name="bottomMargin"><number>0</number></property>
+   <property name="spacing"><number>0</number></property>
+   <item>
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="childrenCollapsible">
+      <bool>false</bool>
+     </property>
+     <!-- Config panel (left) -->
+     <widget class="QWidget" name="config_outer">
+      <property name="minimumSize">
+       <size><width>260</width><height>0</height></size>
+      </property>
+      <property name="maximumSize">
+       <size><width>420</width><height>16777215</height></size>
+      </property>
+      <layout class="QVBoxLayout" name="config_outer_layout">
+       <property name="leftMargin"><number>0</number></property>
+       <property name="topMargin"><number>0</number></property>
+       <property name="rightMargin"><number>0</number></property>
+       <property name="bottomMargin"><number>0</number></property>
+       <item>
+        <widget class="QScrollArea" name="config_scroll">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
+         </property>
+         <widget class="QWidget" name="config_inner">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>260</width>
+            <height>800</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="config_inner_layout">
+           <property name="leftMargin"><number>8</number></property>
+           <property name="topMargin"><number>8</number></property>
+           <property name="rightMargin"><number>8</number></property>
+           <property name="bottomMargin"><number>8</number></property>
+           <property name="spacing"><number>6</number></property>
+
+           <!-- btns0: action buttons row -->
+           <item>
+            <widget class="QWidget" name="btns0" native="true">
+             <layout class="QHBoxLayout" name="btns0_layout">
+              <property name="leftMargin"><number>0</number></property>
+              <property name="topMargin"><number>0</number></property>
+              <property name="rightMargin"><number>0</number></property>
+              <property name="bottomMargin"><number>0</number></property>
+              <property name="spacing"><number>4</number></property>
+              <item>
+               <widget class="QPushButton" name="calc_btn">
+                <property name="text">
+                 <string>Calculate</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="clear_btn">
+                <property name="text">
+                 <string>Clear</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+           <!-- btns1: export buttons -->
+           <item>
+            <widget class="QWidget" name="btns1" native="true">
+             <layout class="QHBoxLayout" name="btns1_layout">
+              <property name="leftMargin"><number>0</number></property>
+              <property name="topMargin"><number>0</number></property>
+              <property name="rightMargin"><number>0</number></property>
+              <property name="bottomMargin"><number>0</number></property>
+              <property name="spacing"><number>4</number></property>
+              <item>
+               <widget class="QPushButton" name="btn_excel">
+                <property name="text">
+                 <string>Excel</string>
+                </property>
+                <property name="minimumSize">
+                 <size><width>0</width><height>24</height></size>
+                </property>
+                <property name="maximumSize">
+                 <size><width>16777215</width><height>24</height></size>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">font-size:10px;</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btn_pdf">
+                <property name="text">
+                 <string>PDF</string>
+                </property>
+                <property name="minimumSize">
+                 <size><width>0</width><height>24</height></size>
+                </property>
+                <property name="maximumSize">
+                 <size><width>16777215</width><height>24</height></size>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">font-size:10px;</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btn_docx">
+                <property name="text">
+                 <string>DOCX</string>
+                </property>
+                <property name="minimumSize">
+                 <size><width>0</width><height>24</height></size>
+                </property>
+                <property name="maximumSize">
+                 <size><width>16777215</width><height>24</height></size>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">font-size:10px;</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btn_print">
+                <property name="text">
+                 <string>Print</string>
+                </property>
+                <property name="minimumSize">
+                 <size><width>0</width><height>24</height></size>
+                </property>
+                <property name="maximumSize">
+                 <size><width>16777215</width><height>24</height></size>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">font-size:10px;</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+           <!-- Weight section label -->
+           <item>
+            <widget class="QLabel" name="weight_section_lbl">
+             <property name="text">
+              <string>WEIGHT</string>
+             </property>
+            </widget>
+           </item>
+
+           <!-- Favorites widget (dynamic) -->
+           <item>
+            <widget class="QWidget" name="fav_widget" native="true">
+             <layout class="QHBoxLayout" name="fav_layout">
+              <property name="leftMargin"><number>0</number></property>
+              <property name="topMargin"><number>0</number></property>
+              <property name="rightMargin"><number>0</number></property>
+              <property name="bottomMargin"><number>0</number></property>
+              <property name="spacing"><number>4</number></property>
+              <item>
+               <spacer name="fav_spacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size><width>40</width><height>20</height></size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+           <!-- Profile combo -->
+           <item>
+            <widget class="QComboBox" name="profile_combo">
+            </widget>
+           </item>
+
+           <!-- Dynamic dimension fields container -->
+           <item>
+            <widget class="QWidget" name="dim_container" native="true">
+             <layout class="QGridLayout" name="dim_layout">
+              <property name="leftMargin"><number>0</number></property>
+              <property name="topMargin"><number>0</number></property>
+              <property name="rightMargin"><number>0</number></property>
+              <property name="bottomMargin"><number>0</number></property>
+              <property name="spacing"><number>4</number></property>
+             </layout>
+            </widget>
+           </item>
+
+           <!-- field_espesor: Wall thickness -->
+           <item>
+            <widget class="QWidget" name="field_espesor" native="true">
+             <layout class="QHBoxLayout" name="field_espesor_layout">
+              <property name="leftMargin"><number>0</number></property>
+              <property name="topMargin"><number>0</number></property>
+              <property name="rightMargin"><number>0</number></property>
+              <property name="bottomMargin"><number>0</number></property>
+              <property name="spacing"><number>6</number></property>
+              <item>
+               <widget class="QLabel" name="lbl_espesor">
+                <property name="text">
+                 <string>Wall thickness</string>
+                </property>
+                <property name="minimumSize">
+                 <size><width>120</width><height>0</height></size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="e_espesor">
+                <property name="minimumSize">
+                 <size><width>0</width><height>30</height></size>
+                </property>
+                <property name="maximumSize">
+                 <size><width>16777215</width><height>30</height></size>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+           <!-- Solid checkbox -->
+           <item>
+            <widget class="QCheckBox" name="cb_macizo">
+             <property name="text">
+              <string>Solid section</string>
+             </property>
+            </widget>
+           </item>
+
+           <!-- field_kg_m -->
+           <item>
+            <widget class="QWidget" name="field_kg_m" native="true">
+             <layout class="QHBoxLayout" name="field_kg_m_layout">
+              <property name="leftMargin"><number>0</number></property>
+              <property name="topMargin"><number>0</number></property>
+              <property name="rightMargin"><number>0</number></property>
+              <property name="bottomMargin"><number>0</number></property>
+              <property name="spacing"><number>6</number></property>
+              <item>
+               <widget class="QLabel" name="lbl_kg_m">
+                <property name="text">
+                 <string>kg/m</string>
+                </property>
+                <property name="minimumSize">
+                 <size><width>120</width><height>0</height></size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="e_kg_m">
+                <property name="minimumSize">
+                 <size><width>0</width><height>30</height></size>
+                </property>
+                <property name="maximumSize">
+                 <size><width>16777215</width><height>30</height></size>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+           <!-- field_peso_esp -->
+           <item>
+            <widget class="QWidget" name="field_peso_esp" native="true">
+             <layout class="QHBoxLayout" name="field_peso_esp_layout">
+              <property name="leftMargin"><number>0</number></property>
+              <property name="topMargin"><number>0</number></property>
+              <property name="rightMargin"><number>0</number></property>
+              <property name="bottomMargin"><number>0</number></property>
+              <property name="spacing"><number>6</number></property>
+              <item>
+               <widget class="QLabel" name="lbl_peso_esp">
+                <property name="text">
+                 <string>Specific weight</string>
+                </property>
+                <property name="minimumSize">
+                 <size><width>120</width><height>0</height></size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="e_peso_esp">
+                <property name="text">
+                 <string>7.85</string>
+                </property>
+                <property name="minimumSize">
+                 <size><width>0</width><height>30</height></size>
+                </property>
+                <property name="maximumSize">
+                 <size><width>16777215</width><height>30</height></size>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+           <!-- Pricing section label -->
+           <item>
+            <widget class="QLabel" name="pricing_section_lbl">
+             <property name="text">
+              <string>PRICING</string>
+             </property>
+            </widget>
+           </item>
+
+           <!-- field_precio_kg -->
+           <item>
+            <widget class="QWidget" name="field_precio_kg" native="true">
+             <layout class="QHBoxLayout" name="field_precio_kg_layout">
+              <property name="leftMargin"><number>0</number></property>
+              <property name="topMargin"><number>0</number></property>
+              <property name="rightMargin"><number>0</number></property>
+              <property name="bottomMargin"><number>0</number></property>
+              <property name="spacing"><number>6</number></property>
+              <item>
+               <widget class="QLabel" name="lbl_precio_kg">
+                <property name="text">
+                 <string>Price/kg</string>
+                </property>
+                <property name="minimumSize">
+                 <size><width>120</width><height>0</height></size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="e_precio_kg">
+                <property name="minimumSize">
+                 <size><width>0</width><height>30</height></size>
+                </property>
+                <property name="maximumSize">
+                 <size><width>16777215</width><height>30</height></size>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+           <!-- field_precio_m -->
+           <item>
+            <widget class="QWidget" name="field_precio_m" native="true">
+             <layout class="QHBoxLayout" name="field_precio_m_layout">
+              <property name="leftMargin"><number>0</number></property>
+              <property name="topMargin"><number>0</number></property>
+              <property name="rightMargin"><number>0</number></property>
+              <property name="bottomMargin"><number>0</number></property>
+              <property name="spacing"><number>6</number></property>
+              <item>
+               <widget class="QLabel" name="lbl_precio_m">
+                <property name="text">
+                 <string>Price/m</string>
+                </property>
+                <property name="minimumSize">
+                 <size><width>120</width><height>0</height></size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="e_precio_m">
+                <property name="minimumSize">
+                 <size><width>0</width><height>30</height></size>
+                </property>
+                <property name="maximumSize">
+                 <size><width>16777215</width><height>30</height></size>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+           <!-- field_precio_barra -->
+           <item>
+            <widget class="QWidget" name="field_precio_barra" native="true">
+             <layout class="QHBoxLayout" name="field_precio_barra_layout">
+              <property name="leftMargin"><number>0</number></property>
+              <property name="topMargin"><number>0</number></property>
+              <property name="rightMargin"><number>0</number></property>
+              <property name="bottomMargin"><number>0</number></property>
+              <property name="spacing"><number>6</number></property>
+              <item>
+               <widget class="QLabel" name="lbl_precio_barra">
+                <property name="text">
+                 <string>Price/bar</string>
+                </property>
+                <property name="minimumSize">
+                 <size><width>120</width><height>0</height></size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="e_precio_barra">
+                <property name="minimumSize">
+                 <size><width>0</width><height>30</height></size>
+                </property>
+                <property name="maximumSize">
+                 <size><width>16777215</width><height>30</height></size>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+           <!-- field_margen -->
+           <item>
+            <widget class="QWidget" name="field_margen" native="true">
+             <layout class="QHBoxLayout" name="field_margen_layout">
+              <property name="leftMargin"><number>0</number></property>
+              <property name="topMargin"><number>0</number></property>
+              <property name="rightMargin"><number>0</number></property>
+              <property name="bottomMargin"><number>0</number></property>
+              <property name="spacing"><number>6</number></property>
+              <item>
+               <widget class="QLabel" name="lbl_margen">
+                <property name="text">
+                 <string>Profit margin</string>
+                </property>
+                <property name="minimumSize">
+                 <size><width>120</width><height>0</height></size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="e_margen_beneficio">
+                <property name="minimumSize">
+                 <size><width>0</width><height>30</height></size>
+                </property>
+                <property name="maximumSize">
+                 <size><width>16777215</width><height>30</height></size>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+           <!-- currency_row -->
+           <item>
+            <widget class="QWidget" name="currency_row" native="true">
+             <layout class="QHBoxLayout" name="currency_row_layout">
+              <property name="leftMargin"><number>0</number></property>
+              <property name="topMargin"><number>0</number></property>
+              <property name="rightMargin"><number>0</number></property>
+              <property name="bottomMargin"><number>0</number></property>
+              <item>
+               <widget class="QLabel" name="lbl_currency">
+                <property name="text">
+                 <string>Currency</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="currency_combo">
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+           <!-- cost_mode_row (moved here from the Settings menu) -->
+           <item>
+            <widget class="QWidget" name="cost_mode_row" native="true">
+             <layout class="QHBoxLayout" name="cost_mode_row_layout">
+              <property name="leftMargin"><number>0</number></property>
+              <property name="topMargin"><number>0</number></property>
+              <property name="rightMargin"><number>0</number></property>
+              <property name="bottomMargin"><number>0</number></property>
+              <item>
+               <widget class="QLabel" name="lbl_cost_mode">
+                <property name="text">
+                 <string>Cost mode</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="cost_mode_combo">
+                <property name="minimumSize">
+                 <size><width>0</width><height>30</height></size>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+           <!-- Distribute scrap checkbox -->
+           <item>
+            <widget class="QCheckBox" name="cb_retales">
+             <property name="text">
+              <string>Distribute scrap</string>
+             </property>
+            </widget>
+           </item>
+
+           <!-- Confirm cost configuration before calculating -->
+           <item>
+            <widget class="QCheckBox" name="cb_confirm_costs">
+             <property name="text">
+              <string>Confirm cost configuration before calculating</string>
+             </property>
+            </widget>
+           </item>
+
+           <!-- Labour section label -->
+           <item>
+            <widget class="QLabel" name="labour_section_lbl">
+             <property name="text">
+              <string>LABOUR</string>
+             </property>
+            </widget>
+           </item>
+
+           <!-- field_t_recto -->
+           <item>
+            <widget class="QWidget" name="field_t_recto" native="true">
+             <layout class="QHBoxLayout" name="field_t_recto_layout">
+              <property name="leftMargin"><number>0</number></property>
+              <property name="topMargin"><number>0</number></property>
+              <property name="rightMargin"><number>0</number></property>
+              <property name="bottomMargin"><number>0</number></property>
+              <property name="spacing"><number>6</number></property>
+              <item>
+               <widget class="QLabel" name="lbl_t_recto">
+                <property name="text">
+                 <string>Straight cut time</string>
+                </property>
+                <property name="minimumSize">
+                 <size><width>120</width><height>0</height></size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="e_t_recto">
+                <property name="text">
+                 <string>3</string>
+                </property>
+                <property name="minimumSize">
+                 <size><width>0</width><height>30</height></size>
+                </property>
+                <property name="maximumSize">
+                 <size><width>16777215</width><height>30</height></size>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+           <!-- field_pct_inglete -->
+           <item>
+            <widget class="QWidget" name="field_pct_inglete" native="true">
+             <layout class="QHBoxLayout" name="field_pct_inglete_layout">
+              <property name="leftMargin"><number>0</number></property>
+              <property name="topMargin"><number>0</number></property>
+              <property name="rightMargin"><number>0</number></property>
+              <property name="bottomMargin"><number>0</number></property>
+              <property name="spacing"><number>6</number></property>
+              <item>
+               <widget class="QLabel" name="lbl_pct_inglete">
+                <property name="text">
+                 <string>Miter extra (%)</string>
+                </property>
+                <property name="minimumSize">
+                 <size><width>120</width><height>0</height></size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="e_pct_inglete">
+                <property name="text">
+                 <string>35</string>
+                </property>
+                <property name="minimumSize">
+                 <size><width>0</width><height>30</height></size>
+                </property>
+                <property name="maximumSize">
+                 <size><width>16777215</width><height>30</height></size>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+           <!-- field_coste_op -->
+           <item>
+            <widget class="QWidget" name="field_coste_op" native="true">
+             <layout class="QHBoxLayout" name="field_coste_op_layout">
+              <property name="leftMargin"><number>0</number></property>
+              <property name="topMargin"><number>0</number></property>
+              <property name="rightMargin"><number>0</number></property>
+              <property name="bottomMargin"><number>0</number></property>
+              <property name="spacing"><number>6</number></property>
+              <item>
+               <widget class="QLabel" name="lbl_coste_op">
+                <property name="text">
+                 <string>Operator cost</string>
+                </property>
+                <property name="minimumSize">
+                 <size><width>120</width><height>0</height></size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="e_coste_op">
+                <property name="text">
+                 <string>30</string>
+                </property>
+                <property name="minimumSize">
+                 <size><width>0</width><height>30</height></size>
+                </property>
+                <property name="maximumSize">
+                 <size><width>16777215</width><height>30</height></size>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+
+           <!-- Spacer at bottom -->
+           <item>
+            <spacer name="config_spacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size><width>20</width><height>40</height></size>
+             </property>
+            </spacer>
+           </item>
+
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+
+     <!-- Results panel (right) -->
+     <widget class="QWidget" name="results_outer">
+      <layout class="QVBoxLayout" name="results_outer_layout">
+       <property name="leftMargin"><number>0</number></property>
+       <property name="topMargin"><number>0</number></property>
+       <property name="rightMargin"><number>0</number></property>
+       <property name="bottomMargin"><number>0</number></property>
+       <item>
+        <widget class="QLabel" name="results_hdr">
+         <property name="text">
+          <string>Results per cut</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QScrollArea" name="results_scroll">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="results_container">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>400</width>
+            <height>400</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="results_layout">
+           <property name="leftMargin"><number>4</number></property>
+           <property name="topMargin"><number>4</number></property>
+           <property name="rightMargin"><number>4</number></property>
+           <property name="bottomMargin"><number>4</number></property>
+           <property name="spacing"><number>6</number></property>
+           <item>
+            <spacer name="results_spacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size><width>20</width><height>40</height></size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TabStock</class>
+ <widget class="QWidget" name="TabStock">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>900</width>
+    <height>550</height>
+   </rect>
+  </property>
+  <layout class="QVBoxLayout" name="main_layout">
+   <property name="leftMargin"><number>0</number></property>
+   <property name="topMargin"><number>0</number></property>
+   <property name="rightMargin"><number>0</number></property>
+   <property name="bottomMargin"><number>0</number></property>
+   <property name="spacing"><number>0</number></property>
+   <item>
+    <widget class="QFrame" name="toolbar">
+     <property name="minimumSize">
+      <size><width>0</width><height>88</height></size>
+     </property>
+     <property name="maximumSize">
+      <size><width>16777215</width><height>88</height></size>
+     </property>
+     <layout class="QVBoxLayout" name="toolbar_layout">
+      <property name="leftMargin"><number>8</number></property>
+      <property name="topMargin"><number>6</number></property>
+      <property name="rightMargin"><number>8</number></property>
+      <property name="bottomMargin"><number>4</number></property>
+      <property name="spacing"><number>4</number></property>
+      <item>
+       <widget class="QWidget" name="row0" native="true">
+        <layout class="QHBoxLayout" name="row0_layout">
+         <property name="leftMargin"><number>0</number></property>
+         <property name="topMargin"><number>0</number></property>
+         <property name="rightMargin"><number>0</number></property>
+         <property name="bottomMargin"><number>0</number></property>
+         <property name="spacing"><number>6</number></property>
+         <item>
+          <widget class="QPushButton" name="add_btn">
+           <property name="text">
+            <string>+ Add to Stock</string>
+           </property>
+           <property name="minimumSize">
+            <size><width>0</width><height>30</height></size>
+           </property>
+           <property name="maximumSize">
+            <size><width>16777215</width><height>30</height></size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="edit_btn">
+           <property name="text">
+            <string>Edit</string>
+           </property>
+           <property name="minimumSize">
+            <size><width>0</width><height>30</height></size>
+           </property>
+           <property name="maximumSize">
+            <size><width>16777215</width><height>30</height></size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="del_btn">
+           <property name="text">
+            <string>Remove</string>
+           </property>
+           <property name="minimumSize">
+            <size><width>0</width><height>30</height></size>
+           </property>
+           <property name="maximumSize">
+            <size><width>16777215</width><height>30</height></size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="row0_spacer1">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size><width>8</width><height>20</height></size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="filter_entry">
+           <property name="minimumSize">
+            <size><width>200</width><height>28</height></size>
+           </property>
+           <property name="maximumSize">
+            <size><width>200</width><height>28</height></size>
+           </property>
+           <property name="placeholderText">
+            <string>Filter profile...</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="profile_combo">
+           <property name="minimumSize">
+            <size><width>160</width><height>28</height></size>
+           </property>
+           <property name="maximumSize">
+            <size><width>160</width><height>28</height></size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="row0_spacer2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size><width>40</width><height>20</height></size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="summary_lbl">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="row1" native="true">
+        <layout class="QHBoxLayout" name="row1_layout">
+         <property name="leftMargin"><number>0</number></property>
+         <property name="topMargin"><number>0</number></property>
+         <property name="rightMargin"><number>0</number></property>
+         <property name="bottomMargin"><number>0</number></property>
+         <property name="spacing"><number>6</number></property>
+         <item>
+          <widget class="QCheckBox" name="select_all_cb">
+           <property name="text">
+            <string>Select all</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="row1_spacer1">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size><width>12</width><height>20</height></size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_min_length">
+           <property name="text">
+            <string>Min length</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="min_length_entry">
+           <property name="minimumSize">
+            <size><width>70</width><height>24</height></size>
+           </property>
+           <property name="maximumSize">
+            <size><width>70</width><height>24</height></size>
+           </property>
+           <property name="placeholderText">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="row1_spacer2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size><width>8</width><height>20</height></size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_max_length">
+           <property name="text">
+            <string>Max length</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="max_length_entry">
+           <property name="minimumSize">
+            <size><width>70</width><height>24</height></size>
+           </property>
+           <property name="maximumSize">
+            <size><width>70</width><height>24</height></size>
+           </property>
+           <property name="placeholderText">
+            <string notr="true">&#x221e;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="row1_spacer3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size><width>8</width><height>20</height></size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_min_retal">
+           <property name="text">
+            <string>Min retal length</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="min_retal_entry">
+           <property name="minimumSize">
+            <size><width>70</width><height>24</height></size>
+           </property>
+           <property name="maximumSize">
+            <size><width>70</width><height>24</height></size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="row1_spacer4">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size><width>40</width><height>20</height></size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="table_frame">
+     <layout class="QVBoxLayout" name="table_frame_layout">
+      <property name="leftMargin"><number>4</number></property>
+      <property name="topMargin"><number>4</number></property>
+      <property name="rightMargin"><number>4</number></property>
+      <property name="bottomMargin"><number>4</number></property>
+      <item>
+       <widget class="QTableWidget" name="table">
+        <property name="showGrid">
+         <bool>false</bool>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::SingleSelection</enum>
+        </property>
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
+        <column>
+         <property name="text">
+          <string/>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string notr="true">&#x25cf;</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Profile</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Material</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Length</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Qty</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Available</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Retal</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Creation Job</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Used In Jobs</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
