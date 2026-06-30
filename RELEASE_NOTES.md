@@ -23,9 +23,12 @@
 
 **Windows (portable):** extract `NesTube-1.0.0-pre-alpha.1-windows.zip` and run `NesTube.exe`.
 
-**Linux (portable):** extract `NesTube-1.0.0-pre-alpha.1-linux.tar.gz` and run `./NesTube/NesTube`.  
+**Linux (portable):** extract `NesTube-1.0.0-pre-alpha.1-linux.zip` and run `./NesTube/NesTube`.  
 Requires: `libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libegl1`  
 On Ubuntu/Debian: `sudo apt install libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libegl1`
+
+**macOS (portable):** extract `NesTube-1.0.0-pre-alpha.1-macos.zip` and run `./NesTube/NesTube`.  
+⚠️ The bundle is unsigned, so Gatekeeper blocks it on first launch — clear the quarantine flag with `xattr -dr com.apple.quarantine NesTube`, or right-click the executable and choose **Open**.
 
 **From source:** see [README](README.md).
 
@@ -65,9 +68,12 @@ Open an issue at [github.com/Grohle/NesTube/issues](https://github.com/Grohle/Ne
 
 **Windows (portable):** extrae `NesTube-1.0.0-pre-alpha.1-windows.zip` y ejecuta `NesTube.exe`.
 
-**Linux (portable):** extrae `NesTube-1.0.0-pre-alpha.1-linux.tar.gz` y ejecuta `./NesTube/NesTube`.  
+**Linux (portable):** extrae `NesTube-1.0.0-pre-alpha.1-linux.zip` y ejecuta `./NesTube/NesTube`.  
 Dependencias: `libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libegl1`  
 En Ubuntu/Debian: `sudo apt install libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libegl1`
+
+**macOS (portable):** extrae `NesTube-1.0.0-pre-alpha.1-macos.zip` y ejecuta `./NesTube/NesTube`.  
+⚠️ El paquete no está firmado, por lo que Gatekeeper lo bloquea al abrirlo por primera vez — quita la cuarentena con `xattr -dr com.apple.quarantine NesTube`, o haz clic derecho en el ejecutable y elige **Abrir**.
 
 **Desde el código fuente:** ver [README](README.md).
 
