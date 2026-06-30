@@ -124,6 +124,12 @@ JSON spec scenes take `image`, `caption`, `motion`
   finalises the mp4, so a lingering Qt modal/timer can't hang the process.
 - **No window manager** honours `showFullScreen()` under Xvfb — set the window
   geometry explicitly (frameless, `0,0,W,H`).
+- **`--lang` must drive the app UI, not just captions.** `app_config.load()`
+  re-reads the stored language (often `es`) on every call — including inside
+  `NestifyApp.__init__` — so `record_tour.py` patches `load()` to force the
+  requested language; otherwise the recorded UI ignores `--lang`. (Job/piece
+  names come from the demo job data and stay as saved — they're user content,
+  not UI chrome.)
 
 Branding (colours `#161618`/`#F05A22`, IBM Plex font) lives at the top of
 `build_promo.py`.

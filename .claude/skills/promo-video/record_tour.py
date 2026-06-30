@@ -176,7 +176,20 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName("Nestify")
     register_bundled_fonts()
-    app_config.load()
+    # Force the app UI language to match the promo language. app_config.load()
+    # re-reads the stored config (which may be 'es') every call — including
+    # inside NestifyApp.__init__ — so patch it to override the language field,
+    # otherwise the recorded UI ignores --lang.
+    import nestify.i18n as i18n
+    _orig_load = app_config.load
+
+    def _load_lang():
+        prefs = _orig_load()
+        prefs.language = args.lang
+        return prefs
+
+    app_config.load = _load_lang
+    i18n.set_language(args.lang)
     app.setStyleSheet(build_stylesheet("dark"))
     from nestify.ui_qt.app import NestifyApp
     w = NestifyApp()
