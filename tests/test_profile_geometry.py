@@ -1,7 +1,7 @@
 """
 test_profile_geometry.py — §20.3 parametric cross-section contours.
 
-Pure-Python coverage of nestify.profile_geometry.section_contours() for every
+Pure-Python coverage of nestube.profile_geometry.section_contours() for every
 catalogue geometry type. No Qt required (the rasteriser is exercised
 separately, only under a real/offscreen QApplication).
 """
@@ -9,7 +9,7 @@ import math
 
 import pytest
 
-from nestify.profile_geometry import GEOMETRY_TYPES, section_contours
+from nestube.profile_geometry import GEOMETRY_TYPES, section_contours
 
 # Representative dimensions per type, drawn from the catalogue xlsx dataset.
 SAMPLES = {

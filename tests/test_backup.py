@@ -13,10 +13,10 @@ import pytest
 @pytest.fixture
 def temp_db(tmp_path, monkeypatch):
     """Point database + backup at an isolated temp DB and reset the singleton."""
-    import nestify.database as db
-    import nestify.backup as bk
-    import nestify.db_settings as ds
-    path = str(tmp_path / "nestify_geometry.db")
+    import nestube.database as db
+    import nestube.backup as bk
+    import nestube.db_settings as ds
+    path = str(tmp_path / "nestube_geometry.db")
     # Drive both the DB path and the backup dir through db_settings (the real
     # source) and keep database.DB_PATH in sync; avoid writing the real settings
     # file by stubbing save().
@@ -55,8 +55,8 @@ def test_create_list_restore_round_trip(temp_db):
 
 
 def test_create_backup_no_db_returns_none(tmp_path, monkeypatch):
-    import nestify.backup as bk
-    import nestify.database as db
+    import nestube.backup as bk
+    import nestube.database as db
     missing = str(tmp_path / "does_not_exist.db")
     monkeypatch.setattr(db, "DB_PATH", missing)
     assert bk.create_backup("test") is None
@@ -64,7 +64,7 @@ def test_create_backup_no_db_returns_none(tmp_path, monkeypatch):
 
 def test_startup_interval_gate(temp_db, monkeypatch):
     db, bk, g = temp_db
-    import nestify.db_settings as ds
+    import nestube.db_settings as ds
     g.connect().execute("INSERT INTO t VALUES (1)")
     g.connect().commit()
     s = ds.get()

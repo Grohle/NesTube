@@ -22,8 +22,8 @@ def qapp():
 
 @pytest.fixture
 def stock(monkeypatch):
-    import nestify.stock_db as sdb
-    from nestify.stock_db import StockBar, StockDB
+    import nestube.stock_db as sdb
+    from nestube.stock_db import StockBar, StockDB
     db = StockDB(bars=[
         StockBar(id="000001", profile_name="U60x60x2", material_desc="Acero",
                  length=6000, quantity=8, quality="S355J2"),
@@ -38,7 +38,7 @@ def stock(monkeypatch):
 
 
 def test_picker_locked_to_selected_material(qapp, stock):
-    from nestify.ui_qt.dialogs.stock_bar_picker_dialog import StockBarPickerDialog
+    from nestube.ui_qt.dialogs.stock_bar_picker_dialog import StockBarPickerDialog
     dlg = StockBarPickerDialog(profile_name="U60x60x2", material="Acero",
                                quality="S355J2")
     assert dlg._locked is True
@@ -49,14 +49,14 @@ def test_picker_locked_to_selected_material(qapp, stock):
 
 
 def test_picker_unlocked_shows_all(qapp, stock):
-    from nestify.ui_qt.dialogs.stock_bar_picker_dialog import StockBarPickerDialog
+    from nestube.ui_qt.dialogs.stock_bar_picker_dialog import StockBarPickerDialog
     dlg = StockBarPickerDialog()
     assert dlg._locked is False
     assert dlg._table.rowCount() == 3
 
 
 def test_picker_material_only_filter(qapp, stock):
-    from nestify.ui_qt.dialogs.stock_bar_picker_dialog import StockBarPickerDialog
+    from nestube.ui_qt.dialogs.stock_bar_picker_dialog import StockBarPickerDialog
     dlg = StockBarPickerDialog(material="Aluminio")
     assert dlg._table.rowCount() == 1
     assert dlg._table.item(0, dlg._COL_MATERIAL).text() == "Aluminio"
@@ -64,9 +64,9 @@ def test_picker_material_only_filter(qapp, stock):
 
 def test_adopt_material_sets_app_wide(qapp, stock, monkeypatch):
     from PySide6.QtWidgets import QDialog
-    from nestify.models import AppState, Corte
-    from nestify.context_sync import ensure_material_contexts
-    from nestify.ui_qt.tab_nesting import TabNesting
+    from nestube.models import AppState, Corte
+    from nestube.context_sync import ensure_material_contexts
+    from nestube.ui_qt.tab_nesting import TabNesting
 
     st = AppState()
     st.longitud_barra = 6000.0
@@ -80,7 +80,7 @@ def test_adopt_material_sets_app_wide(qapp, stock, monkeypatch):
     assert not ctx.material  # nothing selected yet
 
     # Auto-accept the picker, returning the aluminium bar.
-    import nestify.ui_qt.dialogs.stock_bar_picker_dialog as picker_mod
+    import nestube.ui_qt.dialogs.stock_bar_picker_dialog as picker_mod
     alu = stock.bars[1]
 
     class FakeDlg:

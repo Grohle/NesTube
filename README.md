@@ -1,12 +1,12 @@
-# Nestify
+# NesTube
 
 *Bar, tube, and profile cutting optimizer for metal fabrication shops.*
 
 **[English](#english)** · **[Español](#español)**
 
 <p align="center">
-  <a href="docs/media/nestify_demo.mp4">
-    <img src="docs/media/nestify_demo.gif" alt="Nestify — live walkthrough" width="900">
+  <a href="docs/media/nestube_demo.mp4">
+    <img src="docs/media/nestube_demo.gif" alt="NesTube — live walkthrough" width="900">
   </a>
 </p>
 
@@ -19,7 +19,7 @@
 
 ## English
 
-Nestify helps you turn a list of required cuts into an efficient cutting plan.
+NesTube helps you turn a list of required cuts into an efficient cutting plan.
 You enter the stock bar length and the pieces you need (with quantities, miters,
 and kerf), and it works out how many bars to buy, how to lay the pieces out, and
 what the job weighs and costs. Everything runs locally — no account, no cloud,
@@ -42,7 +42,7 @@ through every tab in detail.
 - **Exports** cutting lists, quotes, and layouts to PDF, Excel, Word, and DXF.
 
 All your data — jobs, custom profiles, materials, and stock — lives in a single
-local SQLite database (`nestify_geometry.db`). You can point it at a shared or
+local SQLite database (`nestube_geometry.db`). You can point it at a shared or
 network location from **File → Database management**, and it's snapshotted
 automatically on launch. `.nestjob` files are an optional export format for
 sharing a single job.
@@ -69,19 +69,19 @@ screenshots above use the light theme.
 
 ### Installing
 
-**Windows (installer)** — download the latest `Nestify-*-setup.exe` from
-[Releases](https://github.com/Grohle/nestify/releases) and run it. No Python
+**Windows (installer)** — download the latest `NesTube-*-setup.exe` from
+[Releases](https://github.com/Grohle/nestube/releases) and run it. No Python
 required; PySide6, fonts, and icons are bundled. SmartScreen may warn that the
 binary is unsigned — choose **More info → Run anyway**.
 
-**Windows (portable)** — download `Nestify-*-windows.zip`, extract, and run
-`Nestify.exe`.
+**Windows (portable)** — download `NesTube-*-windows.zip`, extract, and run
+`NesTube.exe`.
 
 **From source** (Windows, macOS, Linux):
 
 ```bash
-git clone https://github.com/Grohle/nestify.git
-cd nestify
+git clone https://github.com/Grohle/nestube.git
+cd nestube
 python3 -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 python3 main.py
@@ -147,14 +147,14 @@ The three packing algorithms:
 
 ### Data files
 
-Everything stays on your machine, next to `Nestify.exe` (or in the project root
+Everything stays on your machine, next to `NesTube.exe` (or in the project root
 when running from source). The database can be moved to a shared drive from
 **File → Database management**.
 
 | Path | Purpose |
 |------|---------|
-| `nestify_geometry.db` | The database: jobs, custom profiles, materials, stock inventory, and preferences |
-| `nestify_db_location.json` | Bootstrap pointer to the database location and backup policy |
+| `nestube_geometry.db` | The database: jobs, custom profiles, materials, stock inventory, and preferences |
+| `nestube_db_location.json` | Bootstrap pointer to the database location and backup policy |
 | `backups/` | Rolling automatic database snapshots |
 | `*.nestjob` | Optional export of a single job (cuts, profile, nesting state, costs) |
 | `Profiles/` | Thumbnail cache for profile illustrations (rebuilt from the database) |
@@ -170,14 +170,14 @@ reopen a job and press **Calculate** to refresh them.
 On Windows (PowerShell, from the repo root):
 
 ```powershell
-.\packaging\build_installer.ps1     # PyInstaller + Inno Setup → Nestify-<version>-setup.exe
+.\packaging\build_installer.ps1     # PyInstaller + Inno Setup → NesTube-<version>-setup.exe
 ```
 
 Or build the bundle manually:
 
 ```powershell
 pip install -r requirements.txt -r requirements-build.txt
-pyinstaller --noconfirm packaging\nestify.spec
+pyinstaller --noconfirm packaging\nestube.spec
 ```
 
 Pushing a `v*` tag triggers the Windows and Linux release builds in
@@ -186,14 +186,14 @@ Pushing a `v*` tag triggers the Windows and Linux release builds in
 ### Project layout
 
 ```
-nestify/
+nestube/
 ├── main.py                  # Entry point
 ├── requirements.txt
 ├── packaging/               # PyInstaller spec, Inno Setup script, build scripts
 ├── docs/img/                # Screenshots used in this README
 ├── tests/                   # Test suite (pytest)
 ├── .devcontainer/           # Dev tooling and guides (not shipped)
-└── nestify/
+└── nestube/
     ├── logic.py             # Bin packing, area, weight, cost
     ├── nesting_engine.py    # 2D contour nesting
     ├── bevel_geom.py        # Miter/bevel geometry and DXF collision
@@ -208,7 +208,7 @@ are covered by tests. Run the suite before sending a change:
 
 ```bash
 python3 -m pytest tests/ -q
-flake8 --max-line-length=120 nestify/ main.py
+flake8 --max-line-length=120 nestube/ main.py
 ```
 
 A control-by-control reference lives in the
@@ -216,28 +216,28 @@ A control-by-control reference lives in the
 
 ### Optional FastReport integration
 
-Nestify has a built-in WYSIWYG editor for PDF layouts (**Settings → PDF Config →
+NesTube has a built-in WYSIWYG editor for PDF layouts (**Settings → PDF Config →
 Edit layout**). For advanced templates you can also open a `.frx` file in
 [FastReport Community Edition](https://github.com/FastReports/FastReport) — the
 free, open-source report designer — via **Settings → PDF Config → Base PDF
-template**. It's a separate tool and isn't required to use Nestify.
+template**. It's a separate tool and isn't required to use NesTube.
 
 ### Privacy
 
-Nestify makes no network connections during normal use. Menu links (GitHub,
+NesTube makes no network connections during normal use. Menu links (GitHub,
 update check) open in your browser only when you click them. All project data
 stays local.
 
 ### Credits
 
 Developed by **Alberto Miranda**. Bug reports and contributions are welcome at
-[github.com/Grohle/nestify/issues](https://github.com/Grohle/nestify/issues).
+[github.com/Grohle/nestube/issues](https://github.com/Grohle/nestube/issues).
 
 ---
 
 ## Español
 
-Nestify convierte una lista de cortes en un plan de corte eficiente. Introduces
+NesTube convierte una lista de cortes en un plan de corte eficiente. Introduces
 la longitud de la barra y las piezas que necesitas (cantidades, ingletes, kerf)
 y calcula cuántas barras comprar, cómo distribuir las piezas y cuánto pesa y
 cuesta el trabajo. Todo funciona en local: sin cuentas, sin nube, sin red.
@@ -259,7 +259,7 @@ cada pestaña en detalle.
 - **Exporta** listas de corte, presupuestos y layouts a PDF, Excel, Word y DXF.
 
 Todos tus datos — trabajos, perfiles personalizados, materiales y stock — viven
-en una única base de datos SQLite local (`nestify_geometry.db`). Puedes moverla a
+en una única base de datos SQLite local (`nestube_geometry.db`). Puedes moverla a
 una ubicación compartida o de red desde **Archivo → Gestión de base de datos**, y
 se respalda automáticamente en cada arranque. Los archivos `.nestjob` son un
 formato de exportación opcional para compartir un trabajo concreto.
@@ -286,19 +286,19 @@ tema claro.
 
 ### Instalación
 
-**Windows (instalador)** — descarga `Nestify-*-setup.exe` desde
-[Releases](https://github.com/Grohle/nestify/releases) y ejecútalo. No requiere
+**Windows (instalador)** — descarga `NesTube-*-setup.exe` desde
+[Releases](https://github.com/Grohle/nestube/releases) y ejecútalo. No requiere
 Python. SmartScreen puede avisar de que el binario no está firmado: elige **Más
 información → Ejecutar de todas formas**.
 
-**Windows (portable)** — descarga `Nestify-*-windows.zip`, descomprime y ejecuta
-`Nestify.exe`.
+**Windows (portable)** — descarga `NesTube-*-windows.zip`, descomprime y ejecuta
+`NesTube.exe`.
 
 **Desde el código fuente** (Windows, macOS, Linux):
 
 ```bash
-git clone https://github.com/Grohle/nestify.git
-cd nestify
+git clone https://github.com/Grohle/nestube.git
+cd nestube
 python3 -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 python3 main.py
@@ -339,18 +339,18 @@ un mismo trabajo puede contener varios perfiles. Costes añade una sub-pestaña
 
 ### Privacidad
 
-Nestify no se conecta a internet durante el uso normal. Los enlaces de menú
+NesTube no se conecta a internet durante el uso normal. Los enlaces de menú
 (GitHub, comprobar actualizaciones) se abren en el navegador solo cuando los
 pulsas. Todos los datos se quedan en tu equipo.
 
 ### Créditos
 
 Desarrollado por **Alberto Miranda**. Problemas y contribuciones en
-[github.com/Grohle/nestify/issues](https://github.com/Grohle/nestify/issues).
+[github.com/Grohle/nestube/issues](https://github.com/Grohle/nestube/issues).
 
 ### Licencia
 
-Nestify se distribuye bajo la **GNU General Public License v3.0** (GPL-3.0).
+NesTube se distribuye bajo la **GNU General Public License v3.0** (GPL-3.0).
 Eres libre de usar, estudiar, modificar y redistribuir el programa siempre que
 los trabajos derivados se publiquen también bajo la GPL-3.0. El texto completo
 está en [`LICENSE`](LICENSE).
@@ -358,7 +358,7 @@ está en [`LICENSE`](LICENSE).
 > El copyright lo conserva el autor. Si en el futuro necesitas una **licencia
 > comercial** (uso en un producto propietario, sin las obligaciones de copyleft
 > de la GPL), ponte en contacto a través de los
-> [issues del repositorio](https://github.com/Grohle/nestify/issues).
+> [issues del repositorio](https://github.com/Grohle/nestube/issues).
 
 ### Contribuir
 

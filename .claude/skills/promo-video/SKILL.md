@@ -1,6 +1,6 @@
 ---
 name: promo-video
-description: Build a smooth, dynamic promotional video of Nestify. Use when the user wants a promo/demo/teaser/trailer video, a feature showcase reel, or a walkthrough of the app. The primary mode records the LIVE app running (dark theme, a cursor gliding between tabs with the demo job loaded so real cuts/nesting/costs show), then wraps it with title/outro cards, captions and crossfades. A static screenshot-slideshow mode exists as a fallback.
+description: Build a smooth, dynamic promotional video of NesTube. Use when the user wants a promo/demo/teaser/trailer video, a feature showcase reel, or a walkthrough of the app. The primary mode records the LIVE app running (dark theme, a cursor gliding between tabs with the demo job loaded so real cuts/nesting/costs show), then wraps it with title/outro cards, captions and crossfades. A static screenshot-slideshow mode exists as a fallback.
 ---
 
 # Promo video builder
@@ -21,7 +21,7 @@ crossfades are composed on top.
 
 ```bash
 # One command: headless display → record live tour → compose finished promo
-.claude/skills/promo-video/record_live.sh --lang es --out nestify_promo.mp4
+.claude/skills/promo-video/record_live.sh --lang es --out nestube_promo.mp4
 
 # English, with music, custom crossfade (wide 16:9 — YouTube / README / site)
 .claude/skills/promo-video/record_live.sh --lang en --fps 60 \
@@ -29,7 +29,7 @@ crossfades are composed on top.
 
 # Flashy vertical 4:5 cut for LinkedIn / social feeds
 .claude/skills/promo-video/record_live.sh --lang en --style linkedin \
-    --out nestify_linkedin.mp4
+    --out nestube_linkedin.mp4
 ```
 
 Produces a ~25 s clip in under a minute. `--style wide` (default) is 16:9 with
@@ -126,7 +126,7 @@ JSON spec scenes take `image`, `caption`, `motion`
   geometry explicitly (frameless, `0,0,W,H`).
 - **`--lang` must drive the app UI, not just captions.** `app_config.load()`
   re-reads the stored language (often `es`) on every call — including inside
-  `NestifyApp.__init__` — so `record_tour.py` patches `load()` to force the
+  `NesTubeApp.__init__` — so `record_tour.py` patches `load()` to force the
   requested language; otherwise the recorded UI ignores `--lang`. (Job/piece
   names come from the demo job data and stay as saved — they're user content,
   not UI chrome.)

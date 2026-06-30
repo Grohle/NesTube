@@ -8,7 +8,7 @@ import threading
 import pytest
 from shapely.geometry import Polygon, box
 
-from nestify.nesting_engine import (
+from nestube.nesting_engine import (
     STRATEGIES,
     NestingParams,
     NestingPiece,
@@ -28,7 +28,7 @@ from nestify.nesting_engine import (
     nest_simple,
     nest_advanced_timed,
 )
-from nestify.models import Corte
+from nestube.models import Corte
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -389,21 +389,21 @@ class TestBuildObstacle:
 class TestColorSystem:
 
     def test_retal_color(self):
-        from nestify.export_utils import get_retal_color, RETAL_COLOR
+        from nestube.export_utils import get_retal_color, RETAL_COLOR
         assert get_retal_color() == "#39FF14"
 
     def test_cut_color_never_retal(self):
-        from nestify.export_utils import get_cut_color, _is_too_close_to_retal
+        from nestube.export_utils import get_cut_color, _is_too_close_to_retal
         for i in range(100):
             color = get_cut_color((f"cut_{i}", float(i * 10)))
             assert not _is_too_close_to_retal(color), f"Color {color} too close to neon green"
 
     def test_same_key_same_color(self):
-        from nestify.export_utils import get_cut_color
+        from nestube.export_utils import get_cut_color
         assert get_cut_color(("X", 100.0)) == get_cut_color(("X", 100.0))
 
     def test_different_desc_different_color(self):
-        from nestify.export_utils import get_cut_color, clear_color_cache
+        from nestube.export_utils import get_cut_color, clear_color_cache
         clear_color_cache()
         assert get_cut_color(("A", 500.0)) != get_cut_color(("B", 500.0))
 

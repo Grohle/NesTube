@@ -12,10 +12,10 @@ import pytest
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 pytest.importorskip("PySide6.QtWidgets")
 
-from nestify import app_config, profile_catalog
-from nestify.app_config import AppPreferences, CustomProfileEntry
-from nestify.naming import localize_material
-from nestify.ui_qt.tab_materiales import TabMateriales
+from nestube import app_config, profile_catalog
+from nestube.app_config import AppPreferences, CustomProfileEntry
+from nestube.naming import localize_material
+from nestube.ui_qt.tab_materiales import TabMateriales
 
 
 @pytest.fixture(scope="module", autouse=True)

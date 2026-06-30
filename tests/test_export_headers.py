@@ -32,7 +32,7 @@ def real_docx(monkeypatch):
 
 
 def _state():
-    from nestify.models import AppState, Corte
+    from nestube.models import AppState, Corte
     st = AppState()
     st.descripcion = "Bastidor"
     st.longitud_barra = 6000.0
@@ -43,8 +43,8 @@ def _state():
 
 
 def test_docx_quote_headers_have_no_unfilled_placeholder(real_docx, tmp_path):
-    from nestify.export_utils import _write_docx
-    from nestify import units
+    from nestube.export_utils import _write_docx
+    from nestube import units
 
     path = os.path.join(str(tmp_path), "quote.docx")
     _write_docx(path, _state())

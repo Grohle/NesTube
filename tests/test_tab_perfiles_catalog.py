@@ -15,10 +15,10 @@ import pytest
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 pytest.importorskip("PySide6.QtWidgets")
 
-from nestify import app_config
-from nestify.app_config import AppPreferences, CustomProfileEntry
-from nestify.models import AppState, TipoPerfil
-from nestify.ui_qt.tab_perfiles import TabPerfiles, _tipo_for_geometry
+from nestube import app_config
+from nestube.app_config import AppPreferences, CustomProfileEntry
+from nestube.models import AppState, TipoPerfil
+from nestube.ui_qt.tab_perfiles import TabPerfiles, _tipo_for_geometry
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -90,8 +90,8 @@ def test_catalog_config_prices_from_meta(isolated):
     assert perfil.material.precio_kg == pytest.approx(2.0)
 
     # Reuse the real cost path: a 1000 mm cut weighs 8.1 kg → 16.2 € material.
-    from nestify.logic import calcular_resultado
-    from nestify.models import Corte
+    from nestube.logic import calcular_resultado
+    from nestube.models import Corte
     corte = Corte(descripcion="t", largo=1000, cantidad=1)
     res = calcular_resultado(corte, perfil, [[1000]], 6000, 0)
     assert res.kg_ud == pytest.approx(8.1, rel=1e-3)

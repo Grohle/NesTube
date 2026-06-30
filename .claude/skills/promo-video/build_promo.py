@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-build_promo.py — assemble a smooth, dynamic promotional video for Nestify.
+build_promo.py — assemble a smooth, dynamic promotional video for NesTube.
 
 Each "scene" is a screenshot that gets a gentle Ken Burns move (slow zoom/pan),
 an animated caption, and a crossfade into the next scene. A branded title card
@@ -32,14 +32,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional
 
-# ── Branding defaults (Nestify dark theme) ──────────────────────────────────
+# ── Branding defaults (NesTube dark theme) ──────────────────────────────────
 BG = "#161618"          # theme BG_APP
 ACCENT = "#F05A22"      # theme ACCENT (orange)
 TEXT = "#F2F2F2"        # theme TEXT_PRI
 TEXT_DIM = "#8A8A8E"    # theme TEXT_SEC
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-BUNDLED_FONT = REPO_ROOT / "nestify" / "fonts" / "IBMPlexSans-Bold.ttf"
+BUNDLED_FONT = REPO_ROOT / "nestube" / "fonts" / "IBMPlexSans-Bold.ttf"
 FALLBACK_FONT = Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
 
 # Default scene order + bilingual captions, keyed by screenshot base name.
@@ -67,10 +67,10 @@ class Scene:
 @dataclass
 class Spec:
     scenes: List[Scene]
-    title: str = "Nestify"
+    title: str = "NesTube"
     subtitle: str = "Optimización de corte de barras, tubos y perfiles"
-    outro_title: str = "Nestify"
-    outro_subtitle: str = "github.com/Grohle/nestify · GPL-3.0"
+    outro_title: str = "NesTube"
+    outro_subtitle: str = "github.com/Grohle/nestube · GPL-3.0"
     width: int = 1920
     height: int = 1080
     fps: int = 30
@@ -369,7 +369,7 @@ def compose_linkedin(raw: str, timeline_path: str, spec: Spec, out_path: str) ->
         # ── body: footage on canvas + persistent header + kinetic captions ──
         (tmp / "wm.txt").write_text("NESTIFY", encoding="utf-8")
         (tmp / "tag.txt").write_text("Cutting optimization for metal fabrication", encoding="utf-8")
-        (tmp / "foot.txt").write_text("github.com/Grohle/nestify", encoding="utf-8")
+        (tmp / "foot.txt").write_text("github.com/Grohle/nestube", encoding="utf-8")
         chain = [
             f"drawtext=fontfile='{font}':expansion=none:textfile='{tmp/'wm.txt'}':fontcolor={_hex(white)}:fontsize=78:x=64:y=70",
             f"drawtext=fontfile='{font}':expansion=none:textfile='{tmp/'tag.txt'}':fontcolor={_hex(gray)}:fontsize=30:x=66:y=168",
@@ -405,7 +405,7 @@ def compose_linkedin(raw: str, timeline_path: str, spec: Spec, out_path: str) ->
         # ── hook intro ──
         cx = "(w-tw)/2"
         (tmp / "kick.txt").write_text("FOR METAL FABRICATION", encoding="utf-8")
-        (tmp / "ttl.txt").write_text("Nestify", encoding="utf-8")
+        (tmp / "ttl.txt").write_text("NesTube", encoding="utf-8")
         (tmp / "sub.txt").write_text("Smarter bar, tube & profile cutting", encoding="utf-8")
         (tmp / "b1.txt").write_text("Up to ~83% material yield", encoding="utf-8")
         (tmp / "b2.txt").write_text("Interactive miter & bevel nesting", encoding="utf-8")
@@ -421,9 +421,9 @@ def compose_linkedin(raw: str, timeline_path: str, spec: Spec, out_path: str) ->
         ], boxes=[("(iw-240)/2", 668, 240, 8, accent)])
 
         # ── CTA outro ──
-        (tmp / "ot.txt").write_text("Nestify", encoding="utf-8")
+        (tmp / "ot.txt").write_text("NesTube", encoding="utf-8")
         (tmp / "os.txt").write_text("100% offline · GPL-3.0", encoding="utf-8")
-        (tmp / "ourl.txt").write_text("github.com/Grohle/nestify", encoding="utf-8")
+        (tmp / "ourl.txt").write_text("github.com/Grohle/nestube", encoding="utf-8")
         (tmp / "ofree.txt").write_text("Free & open source", encoding="utf-8")
         outro = tmp / "outro.mp4"
         _render_text_card(outro, 3.2, spec, font, texts=[
@@ -513,7 +513,7 @@ def build(spec: Spec, out_path: str) -> None:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Build a Nestify promo video.")
+    ap = argparse.ArgumentParser(description="Build a NesTube promo video.")
     ap.add_argument("--live", help="Live tour footage (raw_tour.mp4 from record_tour.py).")
     ap.add_argument("--timeline", help="timeline.json that pairs with --live.")
     ap.add_argument("--linkedin", action="store_true",
@@ -521,7 +521,7 @@ def main() -> None:
     ap.add_argument("--spec", help="JSON scene spec (full control). Overrides auto build.")
     ap.add_argument("--lang", choices=["es", "en"], default="es")
     ap.add_argument("--img-dir", help="Folder of screenshots (default docs/img/<lang>)")
-    ap.add_argument("--out", default="nestify_promo.mp4")
+    ap.add_argument("--out", default="nestube_promo.mp4")
     ap.add_argument("--audio", help="Optional background music (mp3/m4a/wav)")
     ap.add_argument("--duration", type=float, default=3.8, help="Seconds per scene")
     ap.add_argument("--transition", type=float, default=0.6, help="Crossfade seconds")

@@ -50,23 +50,23 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          python -m PyInstaller --noconfirm packaging/nestify.spec
-          test -f dist/Nestify/Nestify || test -x dist/Nestify/Nestify
+          python -m PyInstaller --noconfirm packaging/nestube.spec
+          test -f dist/NesTube/NesTube || test -x dist/NesTube/NesTube
 
       - name: Create tar.gz
         run: |
-          VER=$(python -c "from nestify import __version__; print(__version__)")
-          ARCHIVE="Nestify-${VER}-linux.tar.gz"
-          tar -czf "$ARCHIVE" -C dist Nestify
+          VER=$(python -c "from nestube import __version__; print(__version__)")
+          ARCHIVE="NesTube-${VER}-linux.tar.gz"
+          tar -czf "$ARCHIVE" -C dist NesTube
           ls -la "$ARCHIVE"
 
       - name: Attach to GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.release_tag }}
-          name: "Nestify ${{ inputs.release_tag }}"
+          name: "NesTube ${{ inputs.release_tag }}"
           body_path: RELEASE_NOTES.md
-          files: Nestify-*-linux.tar.gz
+          files: NesTube-*-linux.tar.gz
           prerelease: true
           fail_on_unmatched_files: true
         env:

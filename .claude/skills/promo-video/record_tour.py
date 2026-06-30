@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-record_tour.py — drive the live Nestify app through a scripted tour and screen-
+record_tour.py — drive the live NesTube app through a scripted tour and screen-
 record it, producing raw live footage for the promo video.
 
 Runs INSIDE the app's Qt event loop on an X display (Xvfb in CI, or a real one).
@@ -20,15 +20,15 @@ import subprocess
 import sys
 from pathlib import Path
 
-sys.path.insert(0, "/home/user/Nestify")
+sys.path.insert(0, "/home/user/NesTube")
 
 from PySide6.QtCore import Qt, QTimer, QElapsedTimer, QPointF
 from PySide6.QtGui import QCursor
 from PySide6.QtWidgets import QApplication, QDialog
 
-from nestify import app_config
-from nestify.ui_qt.fonts_qt import register_bundled_fonts
-from nestify.ui_qt.theme_qt import build_stylesheet
+from nestube import app_config
+from nestube.ui_qt.fonts_qt import register_bundled_fonts
+from nestube.ui_qt.theme_qt import build_stylesheet
 
 # Captions per tab title fragment (matched case-insensitively on the tab text).
 CAPTIONS = {
@@ -174,13 +174,13 @@ def main():
     QApplication.setHighDpiScaleFactorRoundingPolicy(
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
     app = QApplication(sys.argv)
-    app.setApplicationName("Nestify")
+    app.setApplicationName("NesTube")
     register_bundled_fonts()
     # Force the app UI language to match the promo language. app_config.load()
     # re-reads the stored config (which may be 'es') every call — including
-    # inside NestifyApp.__init__ — so patch it to override the language field,
+    # inside NesTubeApp.__init__ — so patch it to override the language field,
     # otherwise the recorded UI ignores --lang.
-    import nestify.i18n as i18n
+    import nestube.i18n as i18n
     _orig_load = app_config.load
 
     def _load_lang():
@@ -191,8 +191,8 @@ def main():
     app_config.load = _load_lang
     i18n.set_language(args.lang)
     app.setStyleSheet(build_stylesheet("dark"))
-    from nestify.ui_qt.app import NestifyApp
-    w = NestifyApp()
+    from nestube.ui_qt.app import NesTubeApp
+    w = NesTubeApp()
     # No window manager under Xvfb honours showFullScreen(), so size explicitly.
     w.setWindowFlag(Qt.FramelessWindowHint, True)
     w.setGeometry(0, 0, W, H)
@@ -223,7 +223,7 @@ def main():
         # Load the demo job so every tab shows real content (cuts, packed bars,
         # costs) — an empty app looks like a fresh install, not a working tool.
         try:
-            from nestify.database import get_geometry_db
+            from nestube.database import get_geometry_db
             jobs = get_geometry_db().list_jobs()
             if jobs:
                 first = jobs[0]

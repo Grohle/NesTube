@@ -1,15 +1,15 @@
-# Contributing to Nestify
+# Contributing to NesTube
 
-Thanks for your interest in improving Nestify! Bug reports, feature ideas and
+Thanks for your interest in improving NesTube! Bug reports, feature ideas and
 pull requests are all welcome.
 
 ## Reporting issues
 
-Open an issue at <https://github.com/Grohle/nestify/issues> with:
+Open an issue at <https://github.com/Grohle/nestube/issues> with:
 
 - What you expected to happen and what actually happened.
 - Steps to reproduce (a small cut list / profile that triggers it helps a lot).
-- Your OS, the Nestify version (Help → About), and any error message.
+- Your OS, the NesTube version (Help → About), and any error message.
 
 ## Development setup
 
@@ -41,7 +41,7 @@ Please add or update tests for any behaviour you change.
 
 ## Contributor License Agreement (CLA)
 
-Nestify is released under the **GPL-3.0**, but the project maintainer keeps the
+NesTube is released under the **GPL-3.0**, but the project maintainer keeps the
 option of offering the software under a separate **commercial license** as well
 (dual licensing). For that to remain possible, the maintainer must hold the
 rights to all contributed code.

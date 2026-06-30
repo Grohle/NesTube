@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # record_live.sh — one command: launch a headless display, record a live tour of
-# the running Nestify app, and compose the finished promo (title + footage +
+# the running NesTube app, and compose the finished promo (title + footage +
 # outro, captions, crossfades).
 #
 # Usage:
@@ -15,7 +15,7 @@
 set -euo pipefail
 
 LANG_OPT=es
-OUT=nestify_promo_live.mp4
+OUT=nestube_promo_live.mp4
 SIZE=1920x1080
 FPS=30
 AUDIO=""
