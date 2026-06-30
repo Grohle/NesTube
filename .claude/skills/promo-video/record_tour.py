@@ -80,42 +80,28 @@ class TourDriver:
 
     def build(self):
         n = self.w._tabs.count()
-        # Find the nesting tab so we can start the tour there.
-        nesting_idx = 0
-        for i in range(n):
-            t = self.w._tabs.tabText(i).replace("&", "").strip().lower()
-            if "anidad" in t or "nest" in t:
-                nesting_idx = i
-                break
-        # Visit order: nesting first, then the remaining tabs in their natural order.
-        order = [nesting_idx] + [i for i in range(n) if i != nesting_idx]
-        self.cursor_from = self._tab_center(nesting_idx)
+        # Start the cursor near the first tab.
+        self.cursor_from = self._tab_center(0)
         QCursor.setPos(int(self.cursor_from.x()), int(self.cursor_from.y()))
-        for i in order:
+        for i in range(n):
             title = self.w._tabs.tabText(i).replace("&", "").strip().lower()
             cap = ""
             for key, val in CAPTIONS.items():
                 if key in title:
                     cap = val.get(self.lang, val["en"]); break
             target = self._tab_center(i)
+            # Glide to the tab, switch to it, then dwell so the panel is readable.
             self.actions.append(("move", target, 0.9))
             self.actions.append(("tab", i, 0.0))
             self.actions.append(("caption", cap, 0.05))
-            self.actions.append(("dwell", None, 2.6))
+            self.actions.append(("dwell", None, 3.5))
             self.actions.append(("endcap", None, 0.0))
 
     # ── run loop ─────────────────────────────────────────────────────────
     def start(self):
-        # Start ffmpeg first, then wait 800 ms for it to begin grabbing frames
-        # before the clock starts.  Without this gap the clock leads the footage
-        # by however long ffmpeg takes to initialise (~300–600 ms), causing
-        # captions to appear early relative to the on-screen action.
+        self.clock.start()
         self.ff = subprocess.Popen(self.ff_cmd, stdin=subprocess.PIPE,
                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        QTimer.singleShot(800, self._start_clock)
-
-    def _start_clock(self):
-        self.clock.start()
         self.action_start = 0.0
         self.timer.start()
 
