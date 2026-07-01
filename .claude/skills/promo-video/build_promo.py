@@ -75,7 +75,9 @@ class Spec:
     height: int = 1080
     fps: int = 30
     transition: float = 0.6     # crossfade seconds
-    card_seconds: float = 2.6   # title/outro duration
+    card_seconds: float = 2.6   # outro (and slideshow title) duration
+    title_seconds: float = 5.0  # opening title card — held longer so the
+                                # app name reads clearly before the crossfade
     bg: str = BG
     accent: str = ACCENT
     text: str = TEXT
@@ -176,8 +178,10 @@ def render_scene(scene: Scene, spec: Spec, font: str, cap_txt: Path, out: Path) 
     ])
 
 
-def render_card(title_txt: Path, sub_txt: Path, spec: Spec, font: str, out: Path) -> None:
-    w, h, fps, dur = spec.width, spec.height, spec.fps, spec.card_seconds
+def render_card(title_txt: Path, sub_txt: Path, spec: Spec, font: str, out: Path,
+                dur: Optional[float] = None) -> None:
+    w, h, fps = spec.width, spec.height, spec.fps
+    dur = spec.card_seconds if dur is None else dur
     accent = _hex(spec.accent)
     big = h // 7
     small = h // 26
@@ -289,7 +293,8 @@ def compose_live(raw: str, timeline_path: str, spec: Spec, out_path: str) -> Non
         (tmp / "t.txt").write_text(spec.title, encoding="utf-8")
         (tmp / "s.txt").write_text(spec.subtitle, encoding="utf-8")
         title = tmp / "title.mp4"
-        render_card(tmp / "t.txt", tmp / "s.txt", spec, font, title)
+        render_card(tmp / "t.txt", tmp / "s.txt", spec, font, title,
+                    dur=spec.title_seconds)
 
         (tmp / "ot.txt").write_text(spec.outro_title, encoding="utf-8")
         (tmp / "os.txt").write_text(spec.outro_subtitle, encoding="utf-8")
@@ -297,7 +302,7 @@ def compose_live(raw: str, timeline_path: str, spec: Spec, out_path: str) -> Non
         render_card(tmp / "ot.txt", tmp / "os.txt", spec, font, outro)
 
         clips = [title, live, outro]
-        durations = [spec.card_seconds, live_dur, spec.card_seconds]
+        durations = [spec.title_seconds, live_dur, spec.card_seconds]
         concat_xfade(clips, durations, spec, Path(out_path))
     total = sum(durations) - spec.transition * (len(clips) - 1)
     print(f"✓ Wrote {out_path}  (live tour + title/outro, ~{total:.1f}s, "
