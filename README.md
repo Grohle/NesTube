@@ -5,8 +5,8 @@
 **[English](#english)** · **[Español](#español)**
 
 <p align="center">
-  <a href="docs/media/nestube_demo.mp4">
-    <img src="docs/media/nestube_demo.gif" alt="NesTube — live walkthrough" width="900">
+  <a href="docs/media/nestube_demo_en.mp4">
+    <img src="docs/media/nestube_demo_en.gif" alt="NesTube — live walkthrough" width="900">
   </a>
 </p>
 
@@ -236,6 +236,14 @@ Developed by **Alberto Miranda**. Bug reports and contributions are welcome at
 ---
 
 ## Español
+
+<p align="center">
+  <a href="docs/media/nestube_demo.mp4">
+    <img src="docs/media/nestube_demo.gif" alt="NesTube — recorrido en vivo" width="900">
+  </a>
+</p>
+
+<p align="center"><sub>▶ Recorrido en vivo — haz clic para ver el vídeo en calidad completa</sub></p>
 
 NesTube convierte una lista de cortes en un plan de corte eficiente. Introduces
 la longitud de la barra y las piezas que necesitas (cantidades, ingletes, kerf)
