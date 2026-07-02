@@ -143,12 +143,21 @@ class _AutoNestWorker(QRunnable):
 
     def run(self) -> None:
         def _progress_cb(result):
-            pct = result.total_placed * 100 // max(1, result.total_pieces)
-            self.signals.progress_pct.emit(pct)
+            # Fires only on genuine improvements — live-preview the new best.
             now = time.monotonic()
             if now - self._last_live >= 0.25:
                 self._last_live = now
                 self.signals.live_result.emit(result, self._bar_len)
+
+        def _tick_cb(frac: float) -> None:
+            # Real progress: elapsed fraction of the time budget (-1 = ∞).
+            # The old pct (pieces placed) hit 100% right after the first pass
+            # and sat there for the rest of the optimisation, which made the
+            # longer time levels look like they did nothing.
+            pct = -1 if frac < 0 else int(frac * 100)
+            if pct != self._last_pct:
+                self._last_pct = pct
+                self.signals.progress_pct.emit(pct)
 
         try:
             result = nest_advanced_timed(
@@ -156,6 +165,7 @@ class _AutoNestWorker(QRunnable):
                 time_limit_sec=self._time_limit,
                 stop_event=self._cancel,
                 progress_cb=_progress_cb,
+                tick_cb=_tick_cb,
             )
         except Exception:
             result = None
@@ -2232,13 +2242,18 @@ class TabNesting(QWidget):
             f"QPushButton {{background:{_th.ACCENT}; color:#FFFFFF; border-radius:4px; font-weight:bold;}}"
             f"QPushButton:hover {{background:{_th.ACCENT_HVR};}}"
         )
-        if result is not None:
+        # An empty result means the engine was stopped before its first pass
+        # finished (or errored) — keep the existing layout instead of wiping it.
+        if result is not None and result.total_placed > 0:
             self._apply_nest_result(result, bar_len)
 
     @Slot(int)
     def _on_nest_progress(self, pct: int) -> None:
         self._auto_nest_pct = pct
-        self.ui.auto_nest_btn.setText(f"■ {t('stop')} {pct}%")
+        if pct < 0:   # unlimited budget — no meaningful percentage
+            self.ui.auto_nest_btn.setText(f"■ {t('stop')}")
+        else:
+            self.ui.auto_nest_btn.setText(f"■ {t('stop')} {pct}%")
 
     def _apply_nest_result(self, result: NestingResult, bar_len: float,
                            refit: bool = True) -> None:

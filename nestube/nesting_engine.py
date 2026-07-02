@@ -255,20 +255,59 @@ def _compute_ifp(stock: Polygon, piece_virtual: Polygon) -> Polygon:
     return box(min_x, min_y, max_x, max_y)
 
 
+class _NFPCache:
+    """Memoises pairwise NFPs for one auto-nest run.
+
+    NFPs are computed on the ORIGIN-normalised virtual polygons (which are
+    shared, persistent objects on each NestingPiece), then translated to the
+    placement offset by the caller. Keyed by polygon fingerprint so the same
+    shape pair is only ever Minkowski-summed once — across every bar, pass and
+    ILS iteration of the run. With a handful of distinct piece shapes this
+    turns thousands of Minkowski sums into a few dozen.
+    """
+
+    def __init__(self) -> None:
+        self._fps: Dict[int, tuple] = {}
+        self._refs: List[Polygon] = []          # keep ids alive for the run
+        self._nfps: Dict[tuple, List[Polygon]] = {}
+
+    def _fp(self, poly: Polygon) -> tuple:
+        fp = self._fps.get(id(poly))
+        if fp is None:
+            fp = _poly_fingerprint(poly)
+            self._fps[id(poly)] = fp
+            self._refs.append(poly)
+        return fp
+
+    def nfp(self, placed_base: Polygon, piece: Polygon) -> List[Polygon]:
+        key = (self._fp(placed_base), self._fp(piece))
+        nfps = self._nfps.get(key)
+        if nfps is None:
+            nfps = _compute_nfp(placed_base, piece)
+            self._nfps[key] = nfps
+        return nfps
+
+
 def _compute_viable_space(
     stock: Polygon,
-    placed_virtual: List[Polygon],
+    placed_virtual: List[Tuple[Polygon, float, float]],
     piece_virtual: Polygon,
+    cache: Optional[_NFPCache] = None,
 ) -> Polygon:
+    """Placed pieces come as (origin-normalised virtual polygon, dx, dy) so the
+    pairwise NFP can be cached shape-to-shape and translated per placement."""
     ifp = _compute_ifp(stock, piece_virtual)
     if ifp.is_empty:
         return Polygon()
     if not placed_virtual:
         return ifp
     forbidden = []
-    for pv in placed_virtual:
-        nfps = _compute_nfp(pv, piece_virtual)
-        forbidden.extend(nfps)
+    for entry in placed_virtual:
+        # Accept plain already-translated Polygons too (legacy callers/tests).
+        base, dx, dy = entry if isinstance(entry, tuple) else (entry, 0.0, 0.0)
+        nfps = cache.nfp(base, piece_virtual) if cache else _compute_nfp(base, piece_virtual)
+        for nfp in nfps:
+            forbidden.append(sh_affinity.translate(nfp, dx, dy))
     if not forbidden:
         return ifp
     forbidden_union = unary_union(forbidden)
@@ -360,27 +399,29 @@ def _bar_extents(result: NestingResult) -> List[float]:
     return list(ends.values())
 
 
-def _score(result: NestingResult, params: NestingParams) -> Tuple[int, float]:
-    """Quality score (lower is better) — the *secondary* term depends on the
-    chosen strategy so each priority optimises a genuinely different goal while
-    they all keep ``bars_used`` as the primary (fewest bars wins first).
+def _score(result: NestingResult, params: NestingParams) -> Tuple[int, int, float]:
+    """Quality score (lower is better).
 
-    - length / min_length / default → minimise total waste (historical behaviour).
+    Primary: pieces NOT placed — a partial layout (Stop pressed mid-pass, or a
+    piece that fits nowhere) must never beat a complete one just because it
+    happens to use fewer bars. Secondary: bars used. Tertiary depends on the
+    strategy so each priority optimises a genuinely different goal:
+
+    - length / min_length / nfp_compact / default → minimise the summed per-bar
+      occupied extent (tightest end-to-end packing). Unlike raw waste — which
+      is CONSTANT at a fixed bar count once every piece is placed, giving the
+      iterated search no gradient at all — extents shrink when bevelled pieces
+      interlock, so extra optimisation time can actually find better layouts.
     - remnants  → maximise the single largest offcut (consolidate the leftover
       into one reusable remnant) ⇒ minimise its negative.
-    - nfp_compact → minimise the summed per-bar extent (pack as tight/left as
-      possible).
     - symmetry → minimise the spread of per-bar fill (balance the bars).
     """
-    used = sum(pp.piece.corte.largo for pp in result.placed)
-    waste = result.bars_used * params.bar_length - used
+    missing = max(0, result.total_pieces - result.total_placed)
     pr = params.priority
     if pr == "remnants":
         extents = _bar_extents(result)
         largest_remnant = max((params.bar_length - e for e in extents), default=0.0)
         secondary = -largest_remnant
-    elif pr == "nfp_compact":
-        secondary = sum(_bar_extents(result))
     elif pr == "symmetry":
         extents = _bar_extents(result)
         if extents:
@@ -388,9 +429,9 @@ def _score(result: NestingResult, params: NestingParams) -> Tuple[int, float]:
             secondary = sum((e - mean) ** 2 for e in extents) / len(extents)
         else:
             secondary = 0.0
-    else:  # length / min_length / default — unchanged
-        secondary = waste
-    return (result.bars_used, secondary)
+    else:  # length / min_length / nfp_compact / default
+        secondary = sum(_bar_extents(result))
+    return (missing, result.bars_used, secondary)
 
 
 # ── Simple nesting (1D) ─────────────────────────────────────────────────────
@@ -472,15 +513,24 @@ def _nest_advanced_greedy_pass(
     units: List[NestingPiece],
     params: NestingParams,
     stop_event: Optional[Event] = None,
+    cache: Optional[_NFPCache] = None,
+    deadline: Optional[float] = None,
 ) -> NestingResult:
     bars: List[List[PlacedPiece]] = []
-    bars_virtual: List[List[Polygon]] = []
+    # Per bar: (origin-normalised virtual polygon, dx, dy) per placed piece,
+    # so NFPs can be cached shape-to-shape (see _NFPCache).
+    bars_virtual: List[List[Tuple[Polygon, float, float]]] = []
     all_placed: List[PlacedPiece] = []
 
     stock = box(params.margin, 0, params.bar_length - params.margin, params.profile_height)
 
     for piece in units:
         if stop_event and stop_event.is_set():
+            break
+        # Abort an over-budget pass mid-way: the partial result scores worse
+        # than any complete one (missing pieces rank first in _score), so the
+        # caller simply discards it instead of blowing past the time limit.
+        if deadline is not None and _time.monotonic() >= deadline:
             break
 
         bar_indices = list(range(len(bars)))
@@ -501,7 +551,7 @@ def _nest_advanced_greedy_pass(
 
             for fh, fv in piece.orientations:
                 pv = piece.virtual_for(fh, fv)
-                viable = _compute_viable_space(stock, placed_v, pv)
+                viable = _compute_viable_space(stock, placed_v, pv, cache)
                 pos = _bottom_left_fill(viable)
                 if pos is not None:
                     cost = pos[0] + 1e-3 * pos[1]
@@ -531,10 +581,9 @@ def _nest_advanced_greedy_pass(
             )
             bars[best_bar].append(pp)
             all_placed.append(pp)
-            placed_poly = sh_affinity.translate(
-                piece.virtual_for(fh, fv), best_pos[0], best_pos[1]
+            bars_virtual[best_bar].append(
+                (piece.virtual_for(fh, fv), best_pos[0], best_pos[1])
             )
-            bars_virtual[best_bar].append(placed_poly)
 
     bars_used = len([b for b in bars if b])
     used = sum(pp.piece.corte.largo for pp in all_placed)
@@ -544,7 +593,10 @@ def _nest_advanced_greedy_pass(
         bars_used=bars_used,
         efficiency=used / total_bar if total_bar > 0 else 0.0,
         total_placed=len(all_placed),
-        total_pieces=sum(p.quantity for p in units),
+        # `units` is already expanded one-entry-per-copy; each entry counts as
+        # one piece. Summing .quantity here double-counted (Σq² not Σq), which
+        # broke the progress percentage and the completeness check.
+        total_pieces=len(units),
     )
 
 
@@ -625,7 +677,14 @@ def nest_advanced_timed(
     time_limit_sec: Optional[float] = None,
     stop_event: Optional[Event] = None,
     progress_cb: Optional[Callable[[NestingResult], None]] = None,
+    tick_cb: Optional[Callable[[float], None]] = None,
 ) -> NestingResult:
+    """Iterated local search over piece orderings within a time budget.
+
+    ``progress_cb(best)`` fires only when a strictly better layout is found.
+    ``tick_cb(fraction)`` fires every iteration with elapsed/time_limit
+    (or -1.0 when the budget is unlimited) so the UI can show real progress.
+    """
     if stop_event is None:
         stop_event = Event()
 
@@ -637,10 +696,12 @@ def nest_advanced_timed(
         return NestingResult()
 
     unlimited = time_limit_sec is None or time_limit_sec <= 0
-    deadline = None if unlimited else _time.monotonic() + float(time_limit_sec)
+    start = _time.monotonic()
+    deadline = None if unlimited else start + float(time_limit_sec)
 
+    cache = _NFPCache()
     best: Optional[NestingResult] = None
-    best_score = (INF, INF)
+    best_score: Tuple[float, float, float] = (INF, INF, INF)
     best_order: Optional[List[NestingPiece]] = None
 
     orderings = _get_strategy_orderings(params.priority)
@@ -662,14 +723,17 @@ def nest_advanced_timed(
         n = len(out)
         if n < 2:
             return out
-        kind = it % 4
-        if kind == 0:                                   # swap two units
+        # Mostly small moves around the incumbent; a full random restart only
+        # 1 iteration in 8 (a 25% restart rate threw away the best ordering far
+        # too often, wasting a quarter of the time budget on cold shuffles).
+        kind = it % 8
+        if kind in (0, 3, 6):                           # swap two units
             i, j = rng.randrange(n), rng.randrange(n)
             out[i], out[j] = out[j], out[i]
-        elif kind == 1:                                 # reverse a segment
+        elif kind in (1, 4):                            # reverse a segment
             i, j = sorted((rng.randrange(n), rng.randrange(n)))
             out[i:j + 1] = out[i:j + 1][::-1]
-        elif kind == 2:                                 # relocate one unit
+        elif kind in (2, 5):                            # relocate one unit
             x = out.pop(rng.randrange(n))
             out.insert(rng.randrange(n + 1), x)
         else:                                           # occasional full restart
@@ -678,8 +742,12 @@ def nest_advanced_timed(
 
     iteration = 0
     while not stop_event.is_set():
-        if not unlimited and _time.monotonic() >= deadline:
+        now = _time.monotonic()
+        if not unlimited and now >= deadline:
             break
+        if tick_cb:
+            tick_cb(-1.0 if unlimited
+                    else min(1.0, (now - start) / float(time_limit_sec)))
         if iteration < len(orderings):
             ordered = orderings[iteration](list(units))
         elif best_order is not None:
@@ -687,7 +755,12 @@ def nest_advanced_timed(
         else:
             ordered = _shuffled(list(units), seed=iteration)
 
-        result = _nest_advanced_greedy_pass(ordered, params, stop_event)
+        # Enforce the deadline inside the pass too — but only once a complete
+        # best exists, so the very first pass always finishes and Stop/timeout
+        # can never leave the user with nothing.
+        pass_deadline = deadline if best is not None else None
+        result = _nest_advanced_greedy_pass(ordered, params, stop_event,
+                                            cache, pass_deadline)
         sc = _score(result, params)
         if best is None or sc < best_score:
             best_score = sc

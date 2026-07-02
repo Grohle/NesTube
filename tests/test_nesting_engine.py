@@ -495,3 +495,81 @@ class TestPolyLocal:
                              flipped_h=fh, flipped_v=fv, color="#f00")
             poly = Polygon(pp.local_polygon_coords())
             assert abs(poly.area - piece.base_polygon.area) < 0.1
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 10. TIMED SEARCH REGRESSIONS — score gradient, completeness, budget
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestTimedSearch:
+    """Regressions for the iterated-local-search fixes: a Stop mid-pass must
+    never drop pieces, total_pieces must count expanded units once, the score
+    must expose a gradient at fixed bar count, and the wall time must respect
+    the budget."""
+
+    def _pieces(self):
+        cortes = [
+            _make_corte(2400.0, qty=4, inglete1=True, inglete2=True,
+                        inglete1_dir="up", inglete2_dir="up"),
+            _make_corte(1800.0, qty=6, inglete1=True, inglete2=True,
+                        inglete1_dir="up", inglete2_dir="down"),
+            _make_corte(600.0, qty=10),
+        ]
+        return [build_nesting_piece(c, i, 200.0, "#f00", 3.0)
+                for i, c in enumerate(cortes)]
+
+    def test_stop_mid_pass_never_drops_pieces(self):
+        pieces = self._pieces()
+        n_units = sum(p.quantity for p in pieces)
+        params = _params(profile_height=200.0, kerf=3.0, margin=0.0)
+        stop = threading.Event()
+        timer = threading.Timer(0.3, stop.set)
+        timer.start()
+        try:
+            result = nest_advanced_timed(pieces, params, time_limit_sec=30.0,
+                                         stop_event=stop)
+        finally:
+            timer.cancel()
+        # Either the full layout (first pass completed) or nothing (stopped
+        # before it) — never a silently truncated cut plan.
+        assert result.total_placed in (0, n_units)
+
+    def test_total_pieces_counts_units_once(self):
+        pieces = self._pieces()
+        n_units = sum(p.quantity for p in pieces)  # 20
+        params = _params(profile_height=200.0, kerf=3.0, margin=0.0)
+        result = nest_advanced_timed(pieces, params, time_limit_sec=1.0)
+        assert result.total_pieces == n_units      # was Σq² (152) before
+        assert result.total_placed == n_units
+
+    def test_score_has_gradient_at_fixed_bar_count(self):
+        from nestube.nesting_engine import _score
+        pieces = self._pieces()
+        params = _params(profile_height=200.0, kerf=3.0, margin=0.0,
+                         priority="length")
+        a = nest_advanced_timed(pieces, params, time_limit_sec=1.0)
+        # Shift the bar-0 rightmost placement further right: same bars, same
+        # pieces, worse extent — the "length" score must notice (raw waste was
+        # constant at fixed bar count and didn't).
+        import copy
+        b = NestingResult(placed=list(a.placed), bars_used=a.bars_used,
+                          efficiency=a.efficiency, total_placed=a.total_placed,
+                          total_pieces=a.total_pieces)
+        idx, _ = max(
+            ((i, pp) for i, pp in enumerate(b.placed) if pp.bar_index == 0),
+            key=lambda t: t[1].x_offset + t[1].piece.corte.largo,
+        )
+        moved = copy.copy(b.placed[idx])
+        moved.x_offset += 150.0
+        b.placed[idx] = moved
+        assert _score(b, params) > _score(a, params)
+
+    def test_time_budget_is_respected(self):
+        import time as _t
+        pieces = self._pieces()
+        params = _params(profile_height=200.0, kerf=3.0, margin=0.0)
+        t0 = _t.monotonic()
+        nest_advanced_timed(pieces, params, time_limit_sec=1.0)
+        # First pass is always allowed to finish; beyond that the deadline is
+        # enforced mid-pass, so a 1s budget must not balloon.
+        assert _t.monotonic() - t0 < 3.0
