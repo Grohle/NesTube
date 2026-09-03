@@ -104,6 +104,7 @@ class AppPreferences:
     opt_time_level_6: float = 0.0
     nesting_real_proportions: bool = True
     nesting_use_cut_colors: bool = True
+    tutorial_seen: bool = False   # first-run guided tour already shown/skipped
     # Legacy-only (CTk UI). The Qt UI no longer has an on-canvas zoom overlay or
     # its toggle — kept so the legacy nestube/nestube/nestube/ui dialog and saved configs keep
     # round-tripping without errors.
@@ -165,6 +166,7 @@ class AppPreferences:
             "opt_time_level_6": self.opt_time_level_6,
             "nesting_real_proportions": self.nesting_real_proportions,
             "nesting_use_cut_colors": self.nesting_use_cut_colors,
+            "tutorial_seen": self.tutorial_seen,
             "nesting_show_zoom_overlay": self.nesting_show_zoom_overlay,  # legacy-only
             "pdf_font_regular": self.pdf_font_regular,
             "pdf_font_bold": self.pdf_font_bold,
@@ -222,6 +224,7 @@ class AppPreferences:
             opt_time_level_6=float(d.get("opt_time_level_6", 0.0)),
             nesting_real_proportions=bool(d.get("nesting_real_proportions", True)),
             nesting_use_cut_colors=bool(d.get("nesting_use_cut_colors", True)),
+            tutorial_seen=bool(d.get("tutorial_seen", False)),
             nesting_show_zoom_overlay=bool(d.get("nesting_show_zoom_overlay", True)),  # legacy-only
             pdf_font_regular=str(d.get("pdf_font_regular", "")),
             pdf_font_bold=str(d.get("pdf_font_bold", "")),

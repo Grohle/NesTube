@@ -469,7 +469,7 @@ class TabCortes(QWidget):
         self.ui.lbl_bar_height.setStyleSheet(_lbl_style)
         self.ui.lbl_bar_height.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight)
         self.ui.e_bar_height.setToolTip(t("tip_bar_height"))
-        self.ui.add_btn.setText("Cut")
+        self.ui.add_btn.setText(t("add_cut"))
         self.ui.add_btn.setIcon(themed_icon("plus", _th.TEXT_PRI, 16))
         self.ui.add_btn.setIconSize(QSize(16, 16))
         self.ui.add_btn.setFixedHeight(30)

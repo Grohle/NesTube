@@ -1350,11 +1350,21 @@ class TabNesting(QWidget):
                 return
             x_mm = self._clamp_free_x(scene_pos.x(), bar_idx, corte, fh, fv)
             if not self._can_place(corte, bar_idx, x_mm, fh, fv):
-                # Occupied spot: fall back to the nearest valid slot on any bar.
-                fallback = self._find_best_snap(scene_pos, corte, fh, fv, max_dx=float("inf"))
-                if fallback is None:
-                    return
-                bar_idx, x_mm = fallback
+                # Same-slot rescue for a move: dropping a carried piece next to
+                # where it was picked up must put it back there, even when the
+                # kerf-strict check rejects its own just-vacated slot (see
+                # _fits_physically). Only then fall back to a far valid slot.
+                orig = self._moving_original
+                if (orig is not None and orig.bar_index == bar_idx
+                        and abs(x_mm - orig.x_offset) <= 5.0
+                        and self._fits_physically(corte, bar_idx, orig.x_offset, fh, fv)):
+                    x_mm = orig.x_offset
+                else:
+                    # Occupied spot: fall back to the nearest valid slot on any bar.
+                    fallback = self._find_best_snap(scene_pos, corte, fh, fv, max_dx=float("inf"))
+                    if fallback is None:
+                        return
+                    bar_idx, x_mm = fallback
 
         is_move = self._moving_original is not None
         if not is_move:
@@ -1565,6 +1575,46 @@ class TabNesting(QWidget):
                 return False
         return True
 
+    def _fits_physically(self, corte: Corte, bar_idx: int, x_mm: float,
+                         fh: bool, fv: bool,
+                         exclude: Optional[PlacedPiece] = None) -> bool:
+        """True iff the REAL contour at ``x_mm`` stays on the bar and overlaps no
+        placed piece's real contour (beyond a hairline).
+
+        This is the ground-truth test behind the same-slot guarantee: the
+        kerf-strict NFP check (``_can_place``) can reject a spot the piece was
+        physically occupying a moment ago — the 1D packer spaces mitered
+        contacts with axis-projected kerf while the NFP uses perpendicular
+        kerf, a sub-mm disagreement that makes a picked-up piece's own slot
+        "vanish" and teleports the drop to a far bar position. Re-placing a
+        piece where a piece already fit can never create a new overlap, so
+        this check ignores kerf and only refuses genuine contour collisions.
+        """
+        if bar_idx < 0 or bar_idx >= len(self._bars):
+            return False
+        try:
+            from shapely.geometry import Polygon as _ShPoly
+            mine = _ShPoly(self._compute_poly_local(corte, fh, fv))
+            mine = _sh_affinity.translate(mine, x_mm, 0.0)
+        except Exception:
+            return False
+        lo, _, hi, _ = mine.bounds
+        if lo < -0.5 or hi > self._bar_len_for(bar_idx) + 0.5:
+            return False
+        for pp in self._bars[bar_idx]:
+            if pp is exclude:
+                continue
+            try:
+                other = _ShPoly(pp.poly_local) if pp.poly_local else _ShPoly(
+                    self._compute_poly_local(pp.corte, pp.flipped_h, pp.flipped_v))
+                other = _sh_affinity.translate(other, pp.x_offset, 0.0)
+                if mine.intersection(other).area > 1.0:   # mm² — hairline contact ok
+                    return False
+            except Exception:
+                return False
+        return True
+
+
     def _can_place(self, corte: Corte, bar_idx: int, x_mm: float,
                    fh: bool, fv: bool, exclude: Optional[PlacedPiece] = None) -> bool:
         fi = self._bar_free_intervals(bar_idx, corte, fh, fv, exclude)
@@ -1650,17 +1700,19 @@ class TabNesting(QWidget):
                 continue
 
             snaps = list(self._rendered_snaps(bar_idx, corte, fh, fv))  # pre-validated
-            # Exact re-placement: when moving a piece, its EXACT original x on its
-            # original bar is offered as a candidate (and slightly preferred on
-            # ties). The NFP snaps are within ~0.1 mm of it, but auto-nest's own
-            # 0.1 mm placement slack means the clean NFP boundary can differ from
-            # where the piece actually sat — offering the remembered x guarantees a
-            # picked-up piece drops back in its identical spot, with no gap.
+            # Exact re-placement guarantee: when moving a piece, its EXACT
+            # original x on its original bar is always offered (and slightly
+            # preferred on ties) as long as the carried contour PHYSICALLY fits
+            # there — validated with the real-contour test, NOT the kerf-strict
+            # NFP. The NFP can reject the piece's own just-vacated slot (the 1D
+            # packer and the NFP disagree by sub-mm on mitered contacts), which
+            # used to teleport a picked-up piece to a far slot. Rotations are
+            # included: a flipped contour with the same extent drops back into
+            # the same spot whenever it genuinely fits.
             orig = self._moving_original
             prefer_x = None
             if (orig is not None and orig.bar_index == bar_idx
-                    and orig.flipped_h == fh and orig.flipped_v == fv
-                    and self._can_place(corte, bar_idx, orig.x_offset, fh, fv)):
+                    and self._fits_physically(corte, bar_idx, orig.x_offset, fh, fv)):
                 prefer_x = orig.x_offset
                 snaps.append(orig.x_offset)
 
@@ -1800,13 +1852,25 @@ class TabNesting(QWidget):
             self._transform_placed(lambda pp: setattr(pp, "flipped_v", not pp.flipped_v))
 
     def _transform_placed(self, fn: Callable) -> None:
+        """Flip/rotate placed pieces in place, refusing transforms that would
+        make a contour physically overlap a neighbour (or leave the bar).
+        Before this guard a flipped miter could silently sit on top of the
+        adjacent piece — the layout looked fine zoomed out and cut wrong."""
         targets = self._selected_pps()
         if not targets:
             return
         self._push_undo()
+        blocked = 0
         for pp in targets:
+            old = (pp.flipped_h, pp.flipped_v, pp.poly_local)
             fn(pp)
             pp.poly_local = self._compute_poly_local(pp.corte, pp.flipped_h, pp.flipped_v)
+            if not self._fits_physically(pp.corte, pp.bar_index, pp.x_offset,
+                                         pp.flipped_h, pp.flipped_v, exclude=pp):
+                pp.flipped_h, pp.flipped_v, pp.poly_local = old
+                blocked += 1
+        if blocked:
+            self.ui.status_lbl.setText(t("flip_blocked", n=blocked))
         self._rebuild_scene()
 
     # ── Delete ────────────────────────────────────────────────────────────────

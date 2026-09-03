@@ -78,6 +78,10 @@ class NesTubeApp(QMainWindow):
             from PySide6.QtCore import QTimer
             QTimer.singleShot(800, self._show_about_startup)
 
+        # First launch: offer the guided tour once (skippable with Esc).
+        from nestube.ui_qt.tutorial import maybe_offer_tutorial
+        maybe_offer_tutorial(self)
+
     def _apply_preferences(self, prefs: AppPreferences) -> None:
         set_language(prefs.language)
         units.set_unit_system(prefs.unit_system)
@@ -181,6 +185,7 @@ class NesTubeApp(QMainWindow):
         about_menu.addAction(t("about_title"), self._show_about)
 
         help_menu = menubar.addMenu(t("help"))
+        help_menu.addAction(t("tutorial_menu"), self._start_tutorial)
         help_menu.addAction(t("github_issues"), self._open_github)
 
     # ── Tabs ─────────────────────────────────────────────────────────────────
@@ -969,6 +974,10 @@ class NesTubeApp(QMainWindow):
 
     def _open_donate(self) -> None:
         webbrowser.open(self._prefs.donation_url)
+
+    def _start_tutorial(self) -> None:
+        from nestube.ui_qt.tutorial import start_tutorial
+        start_tutorial(self)
 
     def _open_github(self) -> None:
         webbrowser.open(self._github_url())

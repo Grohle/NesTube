@@ -254,7 +254,7 @@ class CorteRow(QWidget):
         self._length = QLineEdit()
         self._length.setFixedWidth(72)
         self._length.setProperty("mono", "true")
-        self._length.setPlaceholderText("Length")
+        self._length.setPlaceholderText(t("length"))
         self._length.setValidator(QDoubleValidator(0, 99999, 2, self._length))
         if corte:
             self._length.setText(str(int(corte.largo)) if corte.largo else "")
@@ -265,7 +265,7 @@ class CorteRow(QWidget):
         self._qty = QLineEdit("1")
         self._qty.setFixedWidth(40)
         self._qty.setProperty("mono", "true")
-        self._qty.setPlaceholderText("Qty")
+        self._qty.setPlaceholderText(t("qty_short"))
         self._qty.setValidator(QIntValidator(1, 9999, self._qty))
         if corte:
             self._qty.setText(str(corte.cantidad))
