@@ -33,7 +33,7 @@ The new interface was tested by nesting pieces, then picking them up, rotating t
 
 **Linux (portable):** extract `NesTube-0.1.0-linux.zip` and run `./NesTube/NesTube`.  
 On Ubuntu/Debian, install the libraries it needs first:  
-`sudo apt install libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libegl1 libnss3 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libasound2`
+`sudo apt install libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libegl1 libnss3 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libasound2`
 
 **macOS (portable):** extract `NesTube-0.1.0-macos.zip` and run `./NesTube/NesTube`.  
 ⚠️ The app is unsigned, so macOS blocks it the first time. Run `xattr -dr com.apple.quarantine NesTube`, or right-click the program and choose **Open**.
@@ -42,7 +42,7 @@ On Ubuntu/Debian, install the libraries it needs first:
 
 ### Known limitations
 
-- The download is large (around 330 MB zipped on Linux) because it includes the web engine used to draw the interface.
+- The download is large (around 225 MB zipped on Linux) because it includes the web engine used to draw the interface.
 - A few dialogs (choosing a material, saving a profile, export options) still open in the classic style.
 - The `.nestjob` format and the database layout may change before 1.0.
 
@@ -87,7 +87,7 @@ La interfaz nueva se ha probado anidando piezas y después cogiéndolas, rotánd
 
 **Linux (portable):** extrae `NesTube-0.1.0-linux.zip` y ejecuta `./NesTube/NesTube`.  
 En Ubuntu/Debian, instala antes las librerías que necesita:  
-`sudo apt install libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libegl1 libnss3 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libasound2`
+`sudo apt install libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libegl1 libnss3 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libasound2`
 
 **macOS (portable):** extrae `NesTube-0.1.0-macos.zip` y ejecuta `./NesTube/NesTube`.  
 ⚠️ La aplicación no está firmada, así que macOS la bloquea la primera vez. Ejecuta `xattr -dr com.apple.quarantine NesTube`, o haz clic derecho sobre el programa y elige **Abrir**.
@@ -96,7 +96,7 @@ En Ubuntu/Debian, instala antes las librerías que necesita:
 
 ### Limitaciones conocidas
 
-- La descarga es grande (unos 330 MB en zip en Linux) porque incluye el motor web que dibuja la interfaz.
+- La descarga es grande (unos 225 MB en zip en Linux) porque incluye el motor web que dibuja la interfaz.
 - Algunos diálogos (elegir material, guardar perfil, opciones de exportación) todavía se abren con el estilo clásico.
 - El formato `.nestjob` y la estructura de la base de datos pueden cambiar antes de la 1.0.
 

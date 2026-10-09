@@ -111,7 +111,7 @@ Switch between light and dark with the sun/moon button in the top bar.
 - The release bundles include everything they need (Python, Qt, the web engine,
   fonts and icons). No Python install is required.
 - Linux bundles need these system libraries:
-  `libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libegl1 libnss3 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libasound2`
+  `libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libegl1 libnss3 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libasound2`
 - From source: **Python 3.10+** and the packages in `requirements.txt` (PySide6
   with Qt WebEngine, fpdf2, openpyxl, pandas, python-docx, ezdxf, shapely, numpy,
   pyclipper, Pillow).
@@ -418,7 +418,7 @@ Cambia entre tema claro y oscuro con el botón del sol/luna de la barra superior
 - Los paquetes de cada versión incluyen todo lo necesario (Python, Qt, el motor
   web, fuentes e iconos). No hace falta instalar Python.
 - En Linux hacen falta estas librerías del sistema:
-  `libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libegl1 libnss3 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libasound2`
+  `libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libegl1 libnss3 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libasound2`
 - Desde el código fuente: **Python 3.10+** y las dependencias de
   `requirements.txt` (PySide6 con Qt WebEngine, fpdf2, openpyxl, pandas,
   python-docx, ezdxf, shapely, numpy, pyclipper, Pillow).
