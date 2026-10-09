@@ -8,6 +8,7 @@
 </head>
 <body data-view="nesting">
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="logo" viewBox="0 0 256 256"><rect width="256" height="256" rx="51.2" fill="#1C1C1E"/><rect x="52" y="52" width="38" height="152" rx="4" fill="#F05A22"/><path d="M98 52 L158 145 L158 204 L98 111 Z" fill="#FF9A63"/><rect x="166" y="52" width="38" height="152" rx="4" fill="#F05A22"/></symbol>
   <symbol id="i-menu" viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
   <symbol id="i-chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol>
@@ -88,7 +89,7 @@
   <header class="topbar">
     <div class="topbar-left">
       <button class="brand-btn" id="brand-btn" data-menu aria-haspopup="menu" aria-expanded="false" title="Menú principal: Archivo, Vista, Configuración, Acerca de, Ayuda">
-        <span class="brand-mark">N</span><svg class="icon sm caret"><use href="#i-chevron-down"/></svg>
+        <svg class="brand-mark" aria-hidden="true"><use href="#logo"/></svg><svg class="icon sm caret"><use href="#i-chevron-down"/></svg>
       </button>
       <span class="vsep"></span>
       <nav class="workspace-tabs" role="tablist" aria-label="Pestañas">
@@ -101,7 +102,7 @@
       </nav>
     </div>
     <div class="topbar-center">
-      <div class="doc-title"><span>PED-2026-001</span><span>/</span><strong id="doc-material">IPE 200 · S235</strong><span class="dirty-dot" id="dirty-dot" title="Cambios sin guardar" hidden></span></div>
+      <div class="doc-title"><span id="doc-job">PED-2026-001</span><span>/</span><strong id="doc-material">IPE 200 · S235</strong><span class="dirty-dot" id="dirty-dot" title="Cambios sin guardar" hidden></span></div>
     </div>
     <div class="topbar-right">
       <button class="btn icon-only" title="Catálogo de ventanas y avisos (maqueta)" data-act="catalog"><svg class="icon"><use href="#i-layers"/></svg></button>
@@ -592,13 +593,13 @@
 
   <!-- ═══════════════════════ STATUS BAR ═══════════════════════ -->
   <footer class="statusbar">
-    <span><span class="status-dot"></span>Datos de ejemplo</span>
+    <span id="status-source"><span class="status-dot" style="background:var(--warning)"></span>Datos de ejemplo (vista previa)</span>
     <span class="mono" id="status-main">—</span>
     <span class="spacer"></span>
     <span class="mono" id="status-cursor"></span>
     <span>Esc: deseleccionar</span>
-    <span>BD local · nestube_geometry.db</span>
-    <span>v1.0.0-pre-alpha.1</span>
+    <span id="status-db">BD local · nestube_geometry.db</span>
+    <span id="status-version">v0.1.0</span>
   </footer>
 </div>
 
@@ -614,6 +615,7 @@
 
 <script src="js/ui.js"></script>
 <script src="js/nesting.js"></script>
+<script src="js/nesting-native.js"></script>
 <script src="js/dialogs.js"></script>
 <script src="js/alerts.js"></script>
 <script src="js/profile-images.js"></script>
@@ -621,6 +623,7 @@
 <script src="js/cad.js"></script>
 <script src="js/tutorial.js"></script>
 <script src="js/views.js"></script>
+<script src="js/views-native.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

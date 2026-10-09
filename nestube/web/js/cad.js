@@ -203,6 +203,30 @@
     const w = st.cursor.w || [0, 0];
     $("#cad-coords").textContent = `${w[0].toFixed(2)}, ${w[1].toFixed(2)}, 0.00`;
   }
+  // Drawing → the Qt drawing module's shape dicts (nestube/ui_qt/dialogs/
+  // profile_creator.py, ProfileShape.to_dict). Qt uses screen axes (y down), so
+  // y is flipped; arcs are flattened to open polylines.
+  function toQtShapes() {
+    const P = (p) => [+p[0].toFixed(4), +(-p[1]).toFixed(4)];
+    return st.ents.map((e) => {
+      if (e.type === "circle") return { type: "circle", points: [P(e.c), P([e.c[0] + e.r, e.c[1]])], is_void: !!e.void, dim_name: "", closed: true };
+      if (e.type === "arc") return { type: "line", points: arcPts(e, 24).map(P), is_void: false, dim_name: "", closed: false };
+      const closed = !!e.closed && e.pts.length > 2;
+      return { type: closed ? "polygon" : "line", points: e.pts.map(P), is_void: closed && !!e.void, dim_name: "", closed };
+    });
+  }
+  function saveDrawing() {
+    if (!st.ents.length) return log("No hay nada que guardar", "warn");
+    if (!window.NT_NATIVE) { window.NT.toast("Perfil guardado en la base de datos"); closeCad(); return; }
+    const meta = {};
+    $$("[data-meta]", root).forEach((i) => { if (i.value.trim()) meta[i.dataset.meta] = i.value.trim(); });
+    const sides = st.sides.filter((s) => s.manual).map((s) => ({ name: s.name, length: parseFloat(s.len) || 0, thickness: parseFloat(s.t) || 0 }));
+    window.NT.call("data.save_drawing", { shapes: toQtShapes(), meta, sides }).then((r) => {
+      if (r && r.saved === false) return;
+      closeCad();
+      if (window.NT_VIEWS) window.NT_VIEWS.reload();
+    });
+  }
   function regPoly(c, r, n, rot) { const pts = []; for (let i = 0; i < n; i++) { const a = rot + i * 2 * Math.PI / n; pts.push([c[0] + r * Math.cos(a), c[1] + r * Math.sin(a)]); } return { type: "poly", closed: true, pts }; }
 
   // ── commands ────────────────────────────────────────────────────────────
@@ -342,7 +366,7 @@
     root.setAttribute("role", "dialog"); root.setAttribute("aria-modal", "true"); root.setAttribute("aria-label", "Módulo de dibujo");
     root.innerHTML = `
     <div class="cad-title">
-      <span class="brand-mark" style="width:18px;height:18px;font-size:10px">N</span>
+      <svg class="brand-mark" style="width:18px;height:18px" aria-hidden="true"><use href="#logo"/></svg>
       <strong>Módulo de dibujo</strong><span class="cad-dim">— <span id="cad-docname">IPE 200</span>.perfil</span>
       <span style="flex:1"></span>
       <button class="btn" data-cad="clear">Limpiar</button>
@@ -393,8 +417,8 @@
           <button class="btn" data-cad="side-del">Quitar último lado manual</button>
         </details>
         <details open><summary>Datos del perfil</summary>
-          ${[["Perfil/Material", "IPE 200"], ["Material", "Acero al Carbono"], ["Calidad", "S235"], ["Sección (cm²)", "28.5"], ["Peso lineal", "22.4"], ["Kg por metro (kg/m)", "22.4"], ["Precio €/kg", "0.85"], ["Precio €/m", ""], ["Peso específico (t/m³)", "7.85"]]
-            .map(([k, v]) => `<div class="cad-kv"><span>${k}</span><input class="cad-in" value="${v}"></div>`).join("")}
+          ${[["profile_name", "Perfil/Material", "IPE 200"], ["material", "Material", "Acero al Carbono"], ["quality", "Calidad", "S235"], ["h", "h (mm)", "200"], ["b", "b (mm)", "100"], ["tw", "tw (mm)", "5.6"], ["tf", "tf (mm)", "8.5"], ["seccion_cm2", "Sección (cm²)", "28.5"], ["peso_lineal_kg_m", "Peso lineal", "22.4"], ["kg_por_m", "Kg por metro (kg/m)", "22.4"], ["precio_kg", "Precio €/kg", "0.85"], ["precio_m", "Precio €/m", ""], ["peso_especifico", "Peso específico (t/m³)", "7.85"]]
+            .map(([key, k, v]) => `<div class="cad-kv"><span>${k}</span><input class="cad-in" data-meta="${key}" value="${window.NT_NATIVE && key !== "peso_especifico" ? "" : v}"></div>`).join("")}
         </details>
       </aside>
     </div>
@@ -425,7 +449,7 @@
       const tg = e.target.closest("[data-tg]"); if (tg) { toggle(tg.dataset.tg); return; }
       const c = e.target.closest("[data-cad]"); if (!c) return;
       ({
-        close: closeCad, save: () => { window.NT.toast("Perfil guardado en la base de datos"); closeCad(); },
+        close: closeCad, save: saveDrawing,
         clear: () => window.NT.confirmDialog({ title: "Limpiar", text: "¿Borrar todo el dibujo?", ok: () => commit(() => { st.ents = []; st.sel.clear(); }) }),
         generate: () => { const s = thumbnail(); if (!s) return log("No hay nada dibujado", "warn"); setImage(s); log("Imagen del perfil generada desde el dibujo"); },
         importimg: () => $("#cad-imgfile", root).click(),
@@ -512,9 +536,14 @@
     if (!root) build();
     root.hidden = false;
     $("#cad-docname", root).textContent = name;
-    if (!st.ents.length) st.ents = [ipe200()];
-    st.sides = [{ name: "Alma", len: "183.0", t: 5.6 }, { name: "Ala sup.", len: "100.0", t: 8.5 }, { name: "Ala inf.", len: "100.0", t: 8.5 }];
-    setImage((window.NT_PROFILE_IMAGES || {})["catalog-ac-ipe-200"] || "");
+    if (window.NT_NATIVE) {
+      // Real app: every open is a new, blank drawing.
+      st.ents = []; st.sel.clear(); st.undo = []; st.redo = []; st.sides = []; setImage("");
+    } else {
+      if (!st.ents.length) st.ents = [ipe200()];
+      st.sides = [{ name: "Alma", len: "183.0", t: 5.6 }, { name: "Ala sup.", len: "100.0", t: 8.5 }, { name: "Ala inf.", len: "100.0", t: 8.5 }];
+      setImage((window.NT_PROFILE_IMAGES || {})["catalog-ac-ipe-200"] || "");
+    }
     $$("[data-tg]", root).forEach((b) => b.setAttribute("aria-pressed", String(!!st[b.dataset.tg])));
     st.hist = []; log("Módulo de dibujo · escriba una orden o elija una herramienta en la cinta", "dim");
     log("Clic para añadir puntos. Doble clic, Enter o Esc para terminar. Escriba una longitud y pulse Enter; Tab o < para el ángulo.", "dim");

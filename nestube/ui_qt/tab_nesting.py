@@ -315,6 +315,10 @@ class TabNesting(QWidget):
         self._drag_armed: bool = False             # mouse pressed on a piece, may become a drag
         self._drag_move: bool = False              # current float move started from a drag
         self._press_scene_pos: Optional[QPointF] = None
+        # Cursor x minus the carried piece's reference x at the moment it was
+        # grabbed (0 when it was not grabbed with the pointer).
+        self._grab_dx: float = 0.0
+        self._last_float_pos: Optional[QPointF] = None   # last cursor seen while carrying
         self._rubber_active: bool = False          # marquee selection in progress
         self._rubber_origin: Optional[QPointF] = None
         self._has_fitted: bool = False             # view fitted once; later rebuilds keep zoom
@@ -1109,13 +1113,21 @@ class TabNesting(QWidget):
         self._selected_piece = None
         self._moving_original = None
         self._moving_original_pi = None
+        self._grab_dx = 0.0
         self._snap_preview = None
         self._scene.hide_float_preview()
         self._view.setCursor(Qt.CursorShape.ArrowCursor)
         self.ui.qty_lbl.setVisible(False)
         self._update_left_pan()
 
-    def _pick_up_placed(self, pp: PlacedPiece) -> None:
+    def _pick_up_placed(self, pp: PlacedPiece, grab_x: Optional[float] = None) -> None:
+        """Lift a placed piece so it floats with the cursor.
+
+        grab_x is the scene x where the pointer grabbed it. The carried piece
+        keeps that offset under the cursor; without it the piece jumped so its
+        LEFT end sat on the pointer, and dropping it back "where it was" sent
+        it hundreds of mm away (to whichever slot was nearest its left end).
+        """
         pi = next((p for p in self._pieces if p.corte is pp.corte or (
             p.corte.descripcion == pp.corte.descripcion and p.corte.largo == pp.corte.largo
         )), None)
@@ -1126,6 +1138,7 @@ class TabNesting(QWidget):
         pi.placed_qty = max(0, pi.placed_qty - 1)
         self._moving_original = pp
         self._moving_original_pi = pi
+        self._grab_dx = (grab_x - pp.x_offset) if grab_x is not None else 0.0
         self._selected_piece = pi
         self._floating = True
         self._float_flipped_h = pp.flipped_h
@@ -1216,19 +1229,26 @@ class TabNesting(QWidget):
                     pp = self._drag_candidate
                     self._drag_armed = False
                     self._drag_move = True
-                    self._pick_up_placed(pp)
+                    self._pick_up_placed(pp, grab_x=self._press_scene_pos.x())
         if self._floating and self._selected_piece:
             self._update_float_preview(scene_pos)
 
-    def _on_view_released(self, scene_pos: QPointF) -> None:
+    def _on_view_released(self, scene_pos: QPointF, additive: Optional[bool] = None) -> None:
+        # additive: Ctrl held. None → read the live keyboard modifiers (Qt UI);
+        # the web UI passes it explicitly with the pointer event.
+        def _ctrl() -> bool:
+            if additive is not None:
+                return bool(additive)
+            from PySide6.QtWidgets import QApplication
+            return bool(QApplication.keyboardModifiers() & Qt.KeyboardModifier.ControlModifier)
+
         # Finish a marquee selection started on empty space.
         if self._rubber_active:
             self._rubber_active = False
             self._scene.hide_rubber_band()
             origin = self._rubber_origin
             self._rubber_origin = None
-            from PySide6.QtWidgets import QApplication
-            additive = bool(QApplication.keyboardModifiers() & Qt.KeyboardModifier.ControlModifier)
+            additive = _ctrl()
             thr = 4.0 / max(self._view.zoom_level(), 0.01)
             if origin is not None and (
                 abs(scene_pos.x() - origin.x()) > thr or abs(scene_pos.y() - origin.y()) > thr
@@ -1265,13 +1285,13 @@ class TabNesting(QWidget):
         #     click drops it). This is the click-to-move gesture (no holding).
         #   • otherwise   → select it (shows the Remove/Delete bar; Delete works).
         if self._drag_armed and not self._floating and self._drag_candidate is not None:
-            from PySide6.QtWidgets import QApplication
-            additive = bool(QApplication.keyboardModifiers() & Qt.KeyboardModifier.ControlModifier)
+            additive = _ctrl()
             cand = self._drag_candidate
             if additive:
                 self._select_placed(cand, additive=True)
             elif self._sel == [cand]:
-                self._pick_up_placed(cand)
+                self._pick_up_placed(
+                    cand, grab_x=self._press_scene_pos.x() if self._press_scene_pos is not None else None)
             else:
                 self._select_placed(cand)
         self._drag_armed = False
@@ -1282,9 +1302,18 @@ class TabNesting(QWidget):
 
     # ── Float preview update ──────────────────────────────────────────────────
 
+    def _carry_pos(self, scene_pos: QPointF) -> QPointF:
+        """Cursor → reference point of the carried piece (applies the grab
+        offset of a piece being moved; new pieces hang from their left end)."""
+        if self._moving_original is None or not self._grab_dx:
+            return scene_pos
+        return QPointF(scene_pos.x() - self._grab_dx, scene_pos.y())
+
     def _update_float_preview(self, scene_pos: QPointF) -> None:
         if not self._selected_piece:
             return
+        self._last_float_pos = QPointF(scene_pos)
+        scene_pos = self._carry_pos(scene_pos)
         corte = self._selected_piece.corte
         fh, fv = self._float_flipped_h, self._float_flipped_v
         sh = self._section_height_mm()
@@ -1327,6 +1356,7 @@ class TabNesting(QWidget):
         pi = self._selected_piece
         if pi is None or not self._floating:
             return
+        scene_pos = self._carry_pos(scene_pos)
         corte = pi.corte
         fh, fv = self._float_flipped_h, self._float_flipped_v
 
@@ -1384,6 +1414,7 @@ class TabNesting(QWidget):
         pi.placed_qty += 1
         self._moving_original = None
         self._moving_original_pi = None
+        self._grab_dx = 0.0
 
         # D6: auto-generate DXF contour on first placement (silently, no blocking)
         if not is_move:
@@ -1718,9 +1749,11 @@ class TabNesting(QWidget):
 
             for x_snap in snaps:
                 dx = abs(scene_pos.x() - x_snap)
-                # Tiny bias toward the exact original slot so re-placement is
-                # pixel-perfect when the cursor is essentially on the old spot.
-                score = dx + dy_mm * 0.25 - (0.05 if x_snap == prefer_x else 0.0)
+                # Bias toward the exact original slot so re-placement is exact
+                # when the cursor is near the old spot. 3 mm covers the half-kerf
+                # the NFP adds at the bar start: a piece the 1D packer put at
+                # x=0 used to come back 1.5 mm to the right (kerf/2 snap).
+                score = dx + dy_mm * 0.25 - (3.0 if x_snap == prefer_x else 0.0)
                 if dx <= limit and score < best_score:
                     best_score = score
                     best = (bar_idx, x_snap)
@@ -1819,10 +1852,17 @@ class TabNesting(QWidget):
         """
         if not self._floating or not self._selected_piece:
             return
-        from PySide6.QtGui import QCursor
-        cursor_global = QCursor.pos()
-        cursor_view = self._view.mapFromGlobal(cursor_global)
-        scene_pos = self._view.mapToScene(cursor_view)
+        if self._view.isVisible():
+            from PySide6.QtGui import QCursor
+            cursor_global = QCursor.pos()
+            cursor_view = self._view.mapFromGlobal(cursor_global)
+            scene_pos = self._view.mapToScene(cursor_view)
+        else:
+            # Headless engine (HTML interface): the pointer lives in the web
+            # page, so reuse the last position it reported.
+            scene_pos = self._last_float_pos
+            if scene_pos is None:
+                return
         self._snap_preview = None
         self._update_float_preview(scene_pos)
 
@@ -2055,15 +2095,19 @@ class TabNesting(QWidget):
         else:
             self._run_auto_nest()
 
-    def _run_auto_nest(self, *, skip_clear_warning: bool = False) -> None:
+    def _run_auto_nest(self, *, skip_clear_warning: bool = False,
+                       prompt_material: bool = True) -> None:
         # This method only prepares user-selected parameters for the advanced
         # engine. It must not alter the engine's internal algorithms.
+        # prompt_material=False: the caller (the web UI) already asked the user
+        # about a missing material and chose to continue without one.
         if not self._pieces:
             return
         # Prompt to pick a material if none is assigned yet (§3.4).
         ensure_material_contexts(self._state)
         _ctx = self._state.material_contexts[self._state.active_material_index]
-        if not _ctx.profile_name and not _ctx.material and not getattr(_ctx, "use_stock", False):
+        if (prompt_material and not _ctx.profile_name and not _ctx.material
+                and not getattr(_ctx, "use_stock", False)):
             msg = QMessageBox(self)
             msg.setWindowTitle(t("auto_nest"))
             msg.setText(t("no_material_selected_msg"))
@@ -3178,9 +3222,13 @@ class TabNesting(QWidget):
         # active context's (stale) nesting_layout into the newly selected sub-tab.
         self._state.nesting_layout = list(getattr(ctx, "nesting_layout", []) or [])
         self._state.nesting_bar_lengths = list(getattr(ctx, "nesting_bar_lengths", []) or [])
-        # Auto-fill height from the profile cross-section when derivable and the
-        # user hasn't entered an explicit override.
-        h_auto = profile_section_height(self._state.perfil) if self._state.perfil else 0
+        # Auto-fill height from the profile when derivable and the user hasn't
+        # entered an explicit override. Use the CUTTING height (the face the
+        # user chose for this profile), not the largest face: the bar-height
+        # field shows the cutting height, and the miter geometry must use the
+        # very same value or pieces nested at one height are redrawn at another.
+        from nestube.context_sync import effective_cutting_height
+        h_auto = effective_cutting_height(self._state) if self._state.perfil else 0
         h_override = getattr(self._state, "nesting_height_override", None) or 0
         if h_auto and h_auto > 0 and not h_override:
             self._state.nesting_height_override = h_auto
@@ -3766,7 +3814,10 @@ class TabNesting(QWidget):
         self.ui.tb_bar_len.setText(str(self._state.longitud_barra or 6000))
         h_val = getattr(self._state, "nesting_height_override", None)
         self._apply_height_field(h_val)
-        self._height_override = h_val
+        # _apply_height_field may replace the override with the profile's
+        # cutting height (the value now shown in the field) — read it back so
+        # _section_height_mm() uses what the user sees (same fix as load_state).
+        self._height_override = getattr(self._state, "nesting_height_override", None)
         for w in (self.ui.tb_kerf, self.ui.tb_margin, self.ui.tb_bar_len, self.ui.tb_height):
             w.blockSignals(False)
 

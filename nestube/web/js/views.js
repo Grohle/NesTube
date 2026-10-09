@@ -305,5 +305,5 @@
     });
   }
 
-  window.NT_VIEWS = { init, renderCuts, renderStock, renderJobs, sectionSVG };
+  window.NT_VIEWS = { init, load() {}, reload() {}, renderCuts, renderStock, renderJobs, sectionSVG };
 })();

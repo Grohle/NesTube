@@ -46,8 +46,12 @@ _current_filepath: Optional[str] = None
 class NesTubeApp(QMainWindow):
     """Root application window."""
 
-    def __init__(self) -> None:
+    def __init__(self, headless: bool = False) -> None:
         super().__init__()
+        # headless=True: the window is never shown — the web UI (nestube.ui_web)
+        # drives its tabs as the application engine, so the startup About
+        # dialog and the first-run tour are skipped here (the web UI has its own).
+        self._headless = headless
 
         self._prefs = app_config.load()
         self._apply_preferences(self._prefs)
@@ -73,6 +77,9 @@ class NesTubeApp(QMainWindow):
         # Baseline for the unsaved-changes guard (a fresh, empty job is "clean").
         self._clean_snapshot = ""
         self._mark_clean()
+
+        if headless:
+            return
 
         if self._prefs.show_about_on_startup:
             from PySide6.QtCore import QTimer
@@ -498,72 +505,82 @@ class NesTubeApp(QMainWindow):
 
     def _open_profile_creator(self) -> None:
         from nestube.ui_qt.dialogs.profile_creator import ProfileCreator
+        ProfileCreator(self, on_save=self._on_profile_saved).exec()
+
+    def _save_profile_drawing(self, shapes, meta=None, manual_sides=None) -> None:
+        """Save a profile drawn in the web UI's drawing module through the very
+        same path as the Qt drawing module (thumbnail, WKT, meta, sides, the
+        name/fields dialog and the catalogue entry)."""
+        from nestube.ui_qt.dialogs.profile_creator import ProfileCreator
+        creator = ProfileCreator(self, on_save=self._on_profile_saved,
+                                 initial_shapes=shapes, initial_meta=meta or {},
+                                 initial_manual_sides=manual_sides or [])
+        creator._save_profile()
+        creator.deleteLater()
+
+    def _on_profile_saved(self, data) -> None:
         from nestube.ui_qt.dialogs.profile_save_dialog import ProfileSaveDialog
+        fields = data.get("fields", ["A (mm)", "B (mm)"])
+        field_defaults = data.get("field_defaults", {})
+        thumbnail_path = data.get("thumbnail_path", "")
+        drawing_shapes = data.get("shapes", [])  # persist so it can be edited later
+        meta = dict(data.get("meta", {}))         # full material data sheet
+        manual_sides = list(data.get("manual_sides", []))
 
-        def on_save(data):
-            fields = data.get("fields", ["A (mm)", "B (mm)"])
-            field_defaults = data.get("field_defaults", {})
-            thumbnail_path = data.get("thumbnail_path", "")
-            drawing_shapes = data.get("shapes", [])  # persist so it can be edited later
-            meta = dict(data.get("meta", {}))         # full material data sheet
-            manual_sides = list(data.get("manual_sides", []))
-
-            def on_confirm(result):
-                name = result["name"]
-                quality = result.get("quality", "")
-                notes = result.get("notes", "")
-                final_fields = result.get("fields", fields)
-                image_name = ""
-                _MAX_THUMB = 10 * 1024 * 1024  # 10 MB
-                if (thumbnail_path and os.path.isfile(thumbnail_path)
-                        and os.path.getsize(thumbnail_path) <= _MAX_THUMB):
-                    os.makedirs(app_config.PROFILES_DIR, exist_ok=True)
-                    safe = "".join(c if c.isalnum() or c in "_-" else "_" for c in name)
-                    image_name = f"{safe}.png"
-                    profiles_real = os.path.realpath(app_config.PROFILES_DIR)
-                    dest = os.path.join(profiles_real, image_name)
-                    if os.path.realpath(dest).startswith(profiles_real + os.sep):
-                        shutil.copy2(thumbnail_path, dest)
-                try:
-                    if thumbnail_path:
-                        os.remove(thumbnail_path)
-                except OSError:
-                    pass
-                if result.get("material"):
-                    meta["material"] = result["material"]
-                    meta["specific_weight"] = result.get("specific_weight", 7.85)
-                existing = next(
-                    (p for p in self._prefs.custom_profiles if p.name.lower() == name.lower()), None
+        def on_confirm(result):
+            name = result["name"]
+            quality = result.get("quality", "")
+            notes = result.get("notes", "")
+            final_fields = result.get("fields", fields)
+            image_name = ""
+            _MAX_THUMB = 10 * 1024 * 1024  # 10 MB
+            if (thumbnail_path and os.path.isfile(thumbnail_path)
+                    and os.path.getsize(thumbnail_path) <= _MAX_THUMB):
+                os.makedirs(app_config.PROFILES_DIR, exist_ok=True)
+                safe = "".join(c if c.isalnum() or c in "_-" else "_" for c in name)
+                image_name = f"{safe}.png"
+                profiles_real = os.path.realpath(app_config.PROFILES_DIR)
+                dest = os.path.join(profiles_real, image_name)
+                if os.path.realpath(dest).startswith(profiles_real + os.sep):
+                    shutil.copy2(thumbnail_path, dest)
+            try:
+                if thumbnail_path:
+                    os.remove(thumbnail_path)
+            except OSError:
+                pass
+            if result.get("material"):
+                meta["material"] = result["material"]
+                meta["specific_weight"] = result.get("specific_weight", 7.85)
+            existing = next(
+                (p for p in self._prefs.custom_profiles if p.name.lower() == name.lower()), None
+            )
+            if existing:
+                existing.fields = final_fields
+                existing.quality = quality
+                existing.notes = notes
+                merged = dict(existing.field_defaults)
+                merged.update(field_defaults)
+                existing.field_defaults = merged
+                existing.drawing_shapes = drawing_shapes
+                existing.meta = meta
+                existing.manual_sides = manual_sides
+                if image_name:
+                    existing.image = image_name
+                app_config.save_profile_file(existing)
+            else:
+                entry = CustomProfileEntry(
+                    id=uuid.uuid4().hex[:10], name=name, image=image_name,
+                    quality=quality, notes=notes, fields=final_fields,
+                    field_defaults=field_defaults,
+                    drawing_shapes=drawing_shapes, meta=meta,
+                    manual_sides=manual_sides,
                 )
-                if existing:
-                    existing.fields = final_fields
-                    existing.quality = quality
-                    existing.notes = notes
-                    merged = dict(existing.field_defaults)
-                    merged.update(field_defaults)
-                    existing.field_defaults = merged
-                    existing.drawing_shapes = drawing_shapes
-                    existing.meta = meta
-                    existing.manual_sides = manual_sides
-                    if image_name:
-                        existing.image = image_name
-                    app_config.save_profile_file(existing)
-                else:
-                    entry = CustomProfileEntry(
-                        id=uuid.uuid4().hex[:10], name=name, image=image_name,
-                        quality=quality, notes=notes, fields=final_fields,
-                        field_defaults=field_defaults,
-                        drawing_shapes=drawing_shapes, meta=meta,
-                        manual_sides=manual_sides,
-                    )
-                    self._prefs.custom_profiles.append(entry)
-                    app_config.save_profile_file(entry)
-                app_config.save(self._prefs)
-                self._tab_perfiles.refresh_profile_selector()
+                self._prefs.custom_profiles.append(entry)
+                app_config.save_profile_file(entry)
+            app_config.save(self._prefs)
+            self._tab_perfiles.refresh_profile_selector()
 
-            ProfileSaveDialog(self, fields=fields, on_confirm=on_confirm).exec()
-
-        ProfileCreator(self, on_save=on_save).exec()
+        ProfileSaveDialog(self, fields=fields, on_confirm=on_confirm).exec()
 
     def _add_profile_type(self) -> None:
         name, ok = QInputDialog.getText(self, t("add_profile_type"), t("field_name") + ":")

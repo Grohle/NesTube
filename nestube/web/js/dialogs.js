@@ -96,7 +96,7 @@
       hint("Si ambos paneles están al mismo lado, se apilan en vertical.") + fld("Zona snap", "300", { unit: "mm", num: true }) + sw("Colores por corte en anidado", "", true) },
     naming: { title: "Asignación de nombres", ok: "Guardar", body: hint("Configura los prefijos usados en los nombres auto-generados de jobs y retales.") + grid(fld("Prefijo de trabajo", "JOB"), fld("Prefijo de retal", "R")) +
       `<p class="mono" style="margin:0;font-size:var(--fs-sm);color:var(--text-dim)">Ejemplo: JOB-260629-0001 · S235-000001-R1</p>` },
-    about: { title: "Acerca de NesTube", body: `<div style="display:flex;gap:12px;align-items:center"><span class="brand-mark" style="width:44px;height:44px;font-size:22px;border-radius:10px">N</span><div><strong style="font-size:var(--fs-xl)">NesTube</strong><div class="mono" style="color:var(--text-sec)">Versión instalada: 1.0.0-pre-alpha.1</div></div></div>` +
+    about: { title: "Acerca de NesTube", body: `<div style="display:flex;gap:12px;align-items:center"><svg class="brand-mark" style="width:44px;height:44px;border-radius:10px" aria-hidden="true"><use href="#logo"/></svg><div><strong style="font-size:var(--fs-xl)">NesTube</strong><div class="mono" style="color:var(--text-sec)">Versión instalada: 1.0.0-pre-alpha.1</div></div></div>` +
       hint("NesTube optimiza el corte de barras, tubos y perfiles metálicos: algoritmos de empaquetado, anidado 2D con ingletes, costes y stock. Todo en local, sin cuentas ni nube.") + hint("Idiomas: inglés y español.") + `<span class="chip success">${I("check")}Tienes la última versión (1.0.0-pre-alpha.1)</span>` + sw("No mostrar de nuevo", ""),
       foot: foot(`<button class="btn outline">Buscar actualización</button>`, B.close) },
 
