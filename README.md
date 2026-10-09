@@ -251,6 +251,8 @@ pyinstaller --noconfirm packaging/nestube.spec
 
 Pushing a `v*` tag (or a `release/**` branch) runs `.github/workflows/release.yml`,
 which builds the Windows, Linux and macOS bundles and publishes a pre-release.
+The Windows executables are signed when a code-signing certificate is set as a
+repository secret; see [docs/signing.md](docs/signing.md).
 
 ### How it's built
 
@@ -559,7 +561,9 @@ pyinstaller --noconfirm packaging/nestube.spec
 
 Subir una etiqueta `v*` (o una rama `release/**`) lanza
 `.github/workflows/release.yml`, que compila los paquetes de Windows, Linux y
-macOS y publica una pre-versión.
+macOS y publica una pre-versión. Los ejecutables de Windows se firman si hay un
+certificado de firma de código guardado como secreto del repositorio; ver
+[docs/signing.md](docs/signing.md).
 
 ### Cómo está hecho
 

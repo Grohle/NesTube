@@ -24,11 +24,16 @@ if (-not (Test-Path $Iscc)) {
 
 $ver = python -c "from nestube import __version__; print(__version__)"
 
+# Sign the app before packaging (no-op with a warning when no certificate is
+# set in WINDOWS_CERT_PFX_BASE64 / WINDOWS_CERT_PASSWORD; see docs/signing.md).
+& "$PSScriptRoot\sign_windows.ps1" "dist\NesTube\NesTube.exe"
+
 Write-Host "==> Building installer (Inno Setup) for version $ver"
 & $Iscc "/DMyAppVersion=$ver" "packaging\nestube.iss"
 
 $setup = "NesTube-$ver-setup.exe"
 if (Test-Path $setup) {
+    & "$PSScriptRoot\sign_windows.ps1" $setup
     Write-Host "OK: $setup"
 } else {
     Get-ChildItem -Filter "NesTube-*-setup.exe" | ForEach-Object { Write-Host "OK: $($_.Name)" }
