@@ -51,7 +51,7 @@ class _AutoNestRelay(QObject):
     @Slot(object, float)
     def live(self, result, bar_len: float) -> None:
         self._live(result, bar_len)
-        self.api.b.emit("nest:state", self.api.state())
+        self.api.b.emit("nest:state", self.api.state(light=True))
 
     @Slot(object, float)
     def finished(self, result, bar_len: float) -> None:
@@ -93,8 +93,12 @@ class NestingAPI:
         tab._on_nest_finished = self._relay.finished
 
     # ── state snapshot ──────────────────────────────────────────────────────
-    def state(self) -> Dict[str, Any]:
+    def state(self, light: bool = False) -> Dict[str, Any]:
+        """Snapshot for the page. ``light`` reuses the last unsaved-changes flag
+        (pointer moves: the full job comparison is too heavy to run per move)."""
         tab = self.tab
+        if not light or not hasattr(self, "_app_dirty"):
+            self._app_dirty = bool(self.app._is_dirty())
         ensure_material_contexts(tab._state)
         ctx = tab._state.material_contexts[tab._state.active_material_index]
         sh = tab._section_height_mm()
@@ -165,7 +169,7 @@ class NestingAPI:
             "sel_count": len(sel), "left_pan": bool(tab._view._left_pan_enabled),
             "auto_nesting": bool(tab._auto_nesting), "pct": getattr(tab, "_auto_nest_pct", 0),
             "undo": len(tab._undo_stack), "redo": len(tab._redo_stack),
-            "dirty": bool(tab._nesting_dirty or self.app._is_dirty()),
+            "dirty": bool(tab._nesting_dirty or self._app_dirty),
             "nest_dirty": bool(tab._nesting_dirty),
             "params": self._params(ctx),
             "subtabs": self._subtabs(),
@@ -215,7 +219,7 @@ class NestingAPI:
     def move(self, x: float, y: float, zoom: float = 0) -> Dict[str, Any]:
         self._set_zoom(zoom)
         self.tab._on_view_moved(self._pos(x, y))
-        return self.state()
+        return self.state(light=True)
 
     def release(self, x: float, y: float, ctrl: bool = False, zoom: float = 0) -> Dict[str, Any]:
         self._set_zoom(zoom)

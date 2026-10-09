@@ -13,6 +13,10 @@ the web UI renders them with its own alert component. Questions are answered
 with ``_answer`` (default "yes") because the web UI asks the user *before*
 calling — so a confirmation is never asked twice.
 
+Some engine dialogs (material search, cutting face, profile save, export
+selection) are drawn by the page instead: the result then carries
+``needs`` and the page repeats the call with ``_answers`` (see dialogs.py).
+
 Long-running work (auto-nest) reports through the ``event(name, json)`` signal.
 """
 from __future__ import annotations
@@ -35,9 +39,15 @@ _ANSWERS = {
 class _Capture:
     """Swap QMessageBox's static helpers for collectors for one bridge call."""
 
-    def __init__(self, answer: str = "yes") -> None:
+    def __init__(self, answer: str = "yes", answers: Dict[str, Any] = None) -> None:
         self.alerts: List[Dict[str, str]] = []
         self.answer = answer
+        self.answers: Dict[str, Any] = dict(answers or {})   # web-drawn dialogs
+        self.needs: Dict[str, Any] = None                     # the dialog to draw
+
+    def ask(self, needs: Dict[str, Any]) -> None:
+        if self.needs is None:
+            self.needs = needs
 
     def _collector(self, kind: str):
         cap = self
@@ -71,11 +81,13 @@ class _Capture:
             # Instance-style message boxes (custom buttons): record and cancel.
             cap.alerts.append({"kind": "warning", "title": box.windowTitle(), "msg": box.text()})
             return 0
+        from nestube.ui_web.dialogs import web_dialogs
         try:
             for k in saved:
                 setattr(QMessageBox, k, self._collector(k))
             QMessageBox.exec = _exec
-            yield self
+            with web_dialogs(self):
+                yield self
         finally:
             for k, v in saved.items():
                 if v is not None:
@@ -112,13 +124,15 @@ class Bridge(QObject):
         except ValueError:
             args = {}
         answer = str(args.pop("_answer", "yes"))
-        cap = _Capture(answer)
+        cap = _Capture(answer, args.pop("_answers", None))
         try:
             target = self._resolve(method)
             with cap.active():
                 result = target(**args)
-            return json.dumps({"ok": True, "result": result, "alerts": cap.alerts},
-                              ensure_ascii=False, default=_json_default)
+            out = {"ok": True, "result": result, "alerts": cap.alerts}
+            if cap.needs is not None:
+                out["needs"] = cap.needs
+            return json.dumps(out, ensure_ascii=False, default=_json_default)
         except Exception as exc:  # report, never crash the UI
             traceback.print_exc()
             return json.dumps({"ok": False, "error": f"{type(exc).__name__}: {exc}",

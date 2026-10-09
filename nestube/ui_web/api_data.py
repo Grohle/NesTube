@@ -155,6 +155,12 @@ class DataAPI:
                  params: Optional[dict] = None) -> Dict[str, Any]:
         from nestube.models import Corte
         tab = self.app._tab_cortes
+        if self.app._tabs.currentIndex() != 1:
+            # The Cuts widgets are only refreshed when that tab is shown; load
+            # the active context first so the flush below doesn't write a stale
+            # header (e.g. an empty material search) over it.
+            tab.sync_subtabs_bar()
+            tab._apply_context_to_ui()
         if header:
             for key, w in (("order", tab._e_pedido), ("offer", tab._e_oferta), ("client", tab._e_cliente)):
                 if key in header:
@@ -190,6 +196,11 @@ class DataAPI:
     def cuts_calc(self) -> Dict[str, Any]:
         self.app._tab_cortes._calcular()
         return self.cuts_get()
+
+    def material_options(self, mode: str = "profile", query: str = "", min_len: str = "") -> Dict[str, Any]:
+        """Rows for the web material search (same lists as the Qt dialog)."""
+        from nestube.ui_web.dialogs import material_options
+        return material_options(mode, query, min_len)
 
     def cuts_material_search(self) -> Dict[str, Any]:
         self.app._tab_cortes._search_bar._open_dialog()
