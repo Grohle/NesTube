@@ -26,7 +26,17 @@ def main():
     QApplication.setHighDpiScaleFactorRoundingPolicy(
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
     )
-    app = QApplication(sys.argv)
+    # The new HTML interface is the default; --classic opens the Qt widgets UI.
+    # Both run the very same engine (tabs, nesting, database).
+    classic = "--classic" in sys.argv or os.environ.get("NESTUBE_CLASSIC") == "1"
+    if not classic:
+        try:
+            # Qt WebEngine must be imported before the QApplication exists.
+            from PySide6 import QtWebEngineWidgets  # noqa: F401
+        except ImportError:
+            classic = True
+
+    app = QApplication([a for a in sys.argv if a != "--classic"])
     app.setApplicationName("NesTube")
 
     register_bundled_fonts()
@@ -34,7 +44,12 @@ def main():
 
     from nestube.ui_qt.app import NesTubeApp
 
-    window = NesTubeApp()
+    if classic:
+        window = NesTubeApp()
+    else:
+        from nestube.ui_web.window import WebMainWindow
+        engine = NesTubeApp(headless=True)
+        window = WebMainWindow(engine)
     window.show()
     sys.exit(app.exec())
 

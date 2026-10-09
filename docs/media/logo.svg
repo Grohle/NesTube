@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="NesTube">
+  <!-- An "N" made of three cut bars: two straight stems and a diagonal whose
+       ends are mitred to sit flush against them, one saw kerf apart. -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#26262A"/><stop offset="1" stop-color="#121214"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FF7A3D"/><stop offset="1" stop-color="#E8521A"/>
+    </linearGradient>
+    <linearGradient id="cut" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFB089"/><stop offset="1" stop-color="#FF8A52"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="51.2" fill="url(#tile)"/>
+  <g fill="url(#bar)">
+    <rect x="52" y="52" width="38" height="152" rx="4"/>
+    <path d="M98 52 L158 145 L158 204 L98 111 Z" fill="url(#cut)"/>
+    <rect x="166" y="52" width="38" height="152" rx="4"/>
+  </g>
+</svg>

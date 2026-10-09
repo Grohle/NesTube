@@ -125,7 +125,12 @@ class NestingView(QGraphicsView):
             event.accept()
             return
 
-        if (event.button() == Qt.MouseButton.LeftButton
+        # Ctrl+drag pans — but Ctrl+click ON a piece must reach the scene, it is
+        # the multi-selection gesture (TabNesting._on_view_released); panning
+        # here used to swallow it, so Ctrl+click never selected anything.
+        _item = self.itemAt(pos)
+        _on_piece = _item is not None and hasattr(_item, "pp_ref")
+        if (event.button() == Qt.MouseButton.LeftButton and not _on_piece
                 and event.modifiers() & Qt.KeyboardModifier.ControlModifier):
             self._pan_active = True
             self._pan_start_pos = pos

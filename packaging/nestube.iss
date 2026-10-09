@@ -6,7 +6,7 @@
 ; installer filename always matches nestube.__version__. The fallback below is
 ; only used for ad-hoc local builds that invoke ISCC without that flag.
 #ifndef MyAppVersion
-  #define MyAppVersion "1.0.0-pre-alpha.1"
+  #define MyAppVersion "0.1.0"
 #endif
 #define MyAppPublisher "Alberto Miranda"
 #define MyAppURL "https://github.com/Grohle/nestube"

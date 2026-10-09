@@ -16,6 +16,11 @@ def resource_path(*parts: str) -> str:
     """Absolute path to a file under nestube/ or the PyInstaller bundle."""
     if getattr(sys, "frozen", False):
         base = getattr(sys, "_MEIPASS", _package_dir())
+        # The PyInstaller spec bundles data under "nestube/…" (mirroring the
+        # source tree), so look there first.
+        nested = os.path.join(base, "nestube", *parts)
+        if os.path.exists(nested):
+            return nested
     else:
         base = _package_dir()
     return os.path.join(base, *parts)
