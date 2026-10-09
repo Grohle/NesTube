@@ -29,7 +29,8 @@
   function dialog(id) {
     const d = DIALOGS[id];
     if (!d) { toast("Pendiente: " + id); return; }
-    openModal(d.title, d.body, d.foot || `<button class="btn outline" data-close>Cancelar</button><button class="btn primary" data-close${d.done ? ` data-toast="${d.done}"` : ""}>${d.ok || "Aceptar"}</button>`, d.wide);
+    if (d.open) { closeModal(); d.open(); return; }
+    openModal(d.title, typeof d.body === "function" ? d.body() : d.body, d.foot || `<button class="btn outline" data-close>Cancelar</button><button class="btn primary" data-close${d.done ? ` data-toast="${d.done}"` : ""}>${d.ok || "Aceptar"}</button>`, d.wide);
     if (d.init) d.init();
   }
   window.NT.dialog = dialog;
@@ -95,7 +96,7 @@
       { label: "Acerca de NesTube…", action: () => dialog("about") },
     ] },
     { label: "Ayuda", sub: [
-      { label: "Tutorial interactivo", action: () => toast("El tutorial guiado se lanzará aquí") },
+      { label: "Tutorial interactivo", action: () => window.NT_TOUR.start() },
       { label: "GitHub / Issues", action: () => toast("github.com/Grohle/nestube/issues") },
       "-",
       { label: "Catálogo de ventanas y avisos (maqueta)", action: showCatalog },
@@ -217,6 +218,8 @@
   function inField(e) { const t = e.target; return t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA" || t.isContentEditable); }
   document.addEventListener("keydown", (e) => {
     const k = e.key.toLowerCase();
+    const overlayOpen = (id) => { const o = document.getElementById(id); return o && !o.hidden; };
+    if (overlayOpen("cad") || overlayOpen("img-viewer") || overlayOpen("tour")) return; // they own the keyboard
     if (!$("#modal-backdrop").hidden) { if (k === "escape") closeModal(); return; }
     if (k === "escape") { window.NT.closeMenus(); }
     // Ctrl+S is global (File → Save), like QAction shortcut in app.py
@@ -394,6 +397,8 @@
   document.addEventListener("click", (e) => {
     const a = e.target.closest("[data-act]"); if (a && ACTIONS[a.dataset.act]) { ACTIONS[a.dataset.act](a); return; }
     const d = e.target.closest("[data-dialog]"); if (d) { dialog(d.dataset.dialog); return; }
+    const vi = e.target.closest("[data-viewimg]");
+    if (vi && window.NT_PROFILES) { const P = window.NT_PROFILES, all = P.PROFILES; window.NT_VIEWER.open(P.viewerItems(all), all.findIndex((p) => p[0] === vi.dataset.viewimg)); return; }
     if (e.target.closest("[data-close]") || e.target.id === "modal-backdrop") closeModal();
   });
 

@@ -453,18 +453,19 @@
             <div class="section-actions"><button class="btn icon-only" title="Añadir sub-pestaña de material" data-act="subtab-add"><svg class="icon sm"><use href="#i-plus"/></svg></button></div></div>
           <div class="list" data-pages="costs" data-total="1"></div>
         </div>
-        <div class="section">
-          <div class="search"><svg class="icon"><use href="#i-search"/></svg><input placeholder="Buscar perfil, material o calidad…" aria-label="Buscar perfil"></div>
+        <div class="panel-scroll"><div class="section">
+          <div class="section-head"><span class="section-title">Perfil</span><span class="eyebrow">Recientes</span></div>
+          <div style="display:flex;gap:6px"><div class="search" style="flex:1"><svg class="icon"><use href="#i-search"/></svg><input placeholder="Buscar perfil, material o calidad…" aria-label="Buscar perfil"></div><button class="btn outline icon-only" title="Buscar perfiles y tubos" data-dialog="material-picker"><svg class="icon sm"><use href="#i-search"/></svg></button></div>
+          <div class="tile-row" id="cost-gallery"></div>
+          <select class="select" id="cost-profile-combo" aria-label="Todos los perfiles"></select>
           <div class="card" style="cursor:default;padding:10px">
-            <div class="card-thumb" style="height:84px"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M20 10h60v9H55v62h25v9H20v-9h25V19H20z" fill="var(--bg-mid)" stroke="var(--text-sec)" stroke-width="1.5"/></svg></div>
-            <div style="display:flex;justify-content:space-between;align-items:center"><strong>IPE 200</strong><span class="chip">Acero al Carbono</span></div>
-            <div style="display:grid;grid-template-columns:1fr auto;gap:2px 8px;font-size:var(--fs-sm);color:var(--text-sec)" class="mono">
-              <span>h</span><span>200 mm</span><span>b</span><span>100 mm</span><span>tw</span><span>5.6 mm</span><span>tf</span><span>8.5 mm</span>
-              <span>Sección</span><span>28.5 cm²</span><span>Peso lineal</span><span>22.4 kg/m</span>
-            </div>
+            <div class="img-tile zoomable" id="cost-profile-img" style="height:120px" title="Abrir en el visor de imágenes"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><strong id="cost-profile-name"></strong><span class="chip" id="cost-profile-mat"></span></div>
+            <div style="display:grid;grid-template-columns:1fr auto;gap:2px 8px;font-size:var(--fs-sm);color:var(--text-sec)" class="mono" id="cost-profile-dims"></div>
             <button class="btn outline block" data-dialog="materials">Editar material</button>
           </div>
-        </div>
+          <p style="margin:0;font-size:var(--fs-xs);color:var(--text-dim)">Doble clic en una miniatura para verla en grande. Con un perfil de catálogo elegido desde Cortes o Anidado, solo se muestra ese perfil hasta pulsar Limpiar.</p>
+        </div></div>
       </aside>
 
       <div class="content">
@@ -615,6 +616,10 @@
 <script src="js/nesting.js"></script>
 <script src="js/dialogs.js"></script>
 <script src="js/alerts.js"></script>
+<script src="js/profile-images.js"></script>
+<script src="js/viewer.js"></script>
+<script src="js/cad.js"></script>
+<script src="js/tutorial.js"></script>
 <script src="js/views.js"></script>
 <script src="js/app.js"></script>
 </body>

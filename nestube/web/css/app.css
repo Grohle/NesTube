@@ -430,6 +430,130 @@ select.select, .select {
 .catalog-row .src { font-size: var(--fs-xs); color: var(--text-dim); white-space: nowrap; }
 .catalog-row .k { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; }
 
+/* profile images (Profiles/*.png are grey line art on transparency, so they
+   always sit on a light "paper" swatch, in both themes) */
+.img-tile { background: #EDEDF0; border-radius: 6px; display: grid; place-items: center; overflow: hidden; position: relative; }
+.img-tile img { position: absolute; inset: 0; width: 100%; height: 100%; padding: 6px; object-fit: contain; }
+.img-tile.zoomable { cursor: zoom-in; }
+.img-tile.zoomable::after { content: ""; position: absolute; right: 6px; bottom: 6px; width: 22px; height: 22px; border-radius: 6px;
+  background: rgba(28,28,30,.65) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7'/%3E%3C/svg%3E") center / 12px no-repeat;
+  opacity: 0; transition: opacity .15s; }
+.img-tile.zoomable:hover::after { opacity: 1; }
+
+/* profile gallery (Costs tab · ProfileTile row) */
+.tile-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.ptile { display: grid; gap: 4px; padding: 6px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-panel); cursor: pointer; text-align: center; }
+.ptile:hover { border-color: var(--border-strong); }
+.ptile.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.ptile .img-tile { aspect-ratio: 1; }
+.ptile span { font-size: var(--fs-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ptile.add { place-items: center; color: var(--text-sec); border-style: dashed; font-size: 22px; }
+
+/* image viewer */
+.viewer { position: fixed; inset: 0; z-index: 80; display: grid; grid-template-rows: auto 1fr auto; background: var(--bg-app); }
+.viewer-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px; background: var(--bg-panel); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.viewer-title { display: grid; min-width: 0; }
+.viewer-title span { font-size: var(--fs-xs); color: var(--text-sec); }
+.viewer-tools { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.viewer-stage { position: relative; overflow: auto; display: grid; place-items: center; min-height: 0; }
+.viewer-stage img { display: block; image-rendering: auto; box-shadow: 0 0 0 1px rgba(127,127,127,.35); }
+.viewer-stage[data-bg="checker"] { background: repeating-conic-gradient(#E4E4E8 0 25%, #FFFFFF 0 50%) 0 0 / 20px 20px; }
+.viewer-stage[data-bg="light"] { background: #F5F5F7; }
+.viewer-stage[data-bg="dark"] { background: #1C1C1E; }
+.viewer-strip { display: flex; gap: 6px; padding: 8px 12px; overflow-x: auto; background: var(--bg-panel); border-top: 1px solid var(--border); }
+.vw-thumb { flex: none; width: 56px; height: 56px; padding: 2px; border-radius: 6px; border: 2px solid transparent; background: #EDEDF0; }
+.vw-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.vw-thumb.active { border-color: var(--accent); }
+
+/* ── drawing module (AutoCAD-style). Model space is always dark, like
+      AutoCAD's default, so line work reads the same in both app themes. ── */
+.cad { position: fixed; inset: 0; z-index: 75; display: grid; grid-template-rows: 36px auto 1fr auto 26px;
+  --cad-bg: #212830; --cad-panel: #2B323C; --cad-panel2: #333B46; --cad-line: #3F4854; --cad-fg: #E6E9ED; --cad-dim: #98A2AE;
+  --cad-ent: #FFFFFF; --cad-sel: #4DA3FF; --cad-snap: #F5D90A; --cad-grid: #2A323C; --cad-grid-major: #343E4A;
+  background: var(--cad-panel); color: var(--cad-fg); color-scheme: dark; font-size: var(--fs-md); }
+.cad .btn { color: var(--cad-fg); }
+.cad .btn:hover { background: var(--cad-panel2); }
+.cad .btn.primary { color: #fff; }
+.cad-dim { color: var(--cad-dim); }
+.cad-title { display: flex; align-items: center; gap: 8px; padding: 0 8px; background: #1B2027; border-bottom: 1px solid var(--cad-line); }
+.cad-ribbon { display: flex; gap: 0; padding: 6px 6px 0; background: var(--cad-panel); border-bottom: 1px solid var(--cad-line); overflow-x: auto; }
+.rpanel { display: grid; grid-template-rows: 1fr auto; padding: 0 6px; border-right: 1px solid var(--cad-line); }
+.rbody { display: flex; gap: 4px; align-items: stretch; }
+.rcol { display: grid; gap: 1px; align-content: start; }
+.rlabel { text-align: center; font-size: var(--fs-xs); color: var(--cad-dim); padding: 3px 0 4px; }
+.rb { display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 6px; border: 1px solid transparent; border-radius: 3px;
+  background: transparent; color: var(--cad-fg); font-size: var(--fs-sm); white-space: nowrap; }
+.rb kbd { margin-left: auto; background: transparent; color: var(--cad-dim); padding: 0 0 0 10px; font-size: 9px; }
+.rb:hover { background: var(--cad-panel2); border-color: var(--cad-line); }
+.rb[aria-pressed="true"] { background: rgba(77,163,255,.18); border-color: var(--cad-sel); }
+.rb.big { flex-direction: column; justify-content: center; height: 76px; width: 64px; gap: 4px; white-space: normal; text-align: center; line-height: 1.1; }
+.rb.big .icon { width: 26px; height: 26px; }
+.cad-body { display: grid; grid-template-columns: minmax(0, 1fr) 280px; min-height: 0; }
+.cad-model { position: relative; background: var(--cad-bg); overflow: hidden; cursor: none; }
+.cad-model.panning { cursor: grabbing; }
+.cad-model svg#cad-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cad-vplabel { position: absolute; left: 8px; top: 6px; z-index: 1; font-size: var(--fs-xs); color: var(--cad-dim); pointer-events: none; }
+.cad-ucs { position: absolute; left: 8px; bottom: 8px; width: 56px; height: 56px; pointer-events: none; }
+.cad-grid { stroke: var(--cad-grid); stroke-width: 1; }
+.cad-grid.major { stroke: var(--cad-grid-major); }
+.cad-ent { fill: none; stroke: var(--cad-ent); stroke-width: 1.4; }
+.cad-ent.void { stroke: #FF7A7A; stroke-dasharray: 6 4; fill: rgba(255,122,122,.08); }
+.cad-ent.sel { stroke: var(--cad-sel); stroke-dasharray: 5 3; stroke-width: 1.6; }
+.cad-grip { fill: var(--cad-sel); stroke: #fff; stroke-width: .5; }
+.cad-rubber { fill: none; stroke: #9AD0FF; stroke-width: 1; stroke-dasharray: 4 3; }
+.cad-cross { stroke: rgba(255,255,255,.55); stroke-width: 1; pointer-events: none; }
+.cad-pickbox { fill: none; stroke: #fff; stroke-width: 1; }
+.cad-snap { fill: none; stroke: var(--cad-snap); stroke-width: 2; }
+.cad-tip { fill: #FFFFE1; stroke: #6E6E6E; }
+.cad-tip-text { fill: #111; font: 11px var(--font-ui); }
+.cad-dyn { fill: #F4F4F4; stroke: #8A8A8A; }
+.cad-dyn.active { stroke: var(--cad-sel); stroke-width: 2; }
+.cad-dyn-text { fill: #111; font: 11px var(--font-mono); }
+.cad-pop { position: absolute; left: 50%; top: 40px; transform: translateX(-50%); z-index: 2; width: 340px; display: grid; gap: 10px; padding: 12px;
+  background: var(--cad-panel); border: 1px solid var(--cad-line); border-radius: 6px; box-shadow: 0 10px 30px rgba(0,0,0,.5); cursor: default; }
+.cad-pop .field { font-size: var(--fs-xs); color: var(--cad-dim); gap: 3px; }
+.cad-in { height: 24px; padding: 0 6px; border: 1px solid var(--cad-line); border-radius: 2px; background: #1E242B; color: var(--cad-fg); font: 12px var(--font-mono); min-width: 0; width: 100%; }
+.cad-in:focus { outline: none; border-color: var(--cad-sel); }
+.cad-props { background: var(--cad-panel); border-left: 1px solid var(--cad-line); overflow-y: auto; min-height: 0; }
+.cad-ph { padding: 8px 10px; font-weight: 700; border-bottom: 1px solid var(--cad-line); background: #262D36; }
+.cad-props details { border-bottom: 1px solid var(--cad-line); }
+.cad-props summary { padding: 6px 10px; font-size: var(--fs-sm); font-weight: 500; cursor: pointer; background: var(--cad-panel2); list-style: none; }
+.cad-props summary::before { content: "▸ "; color: var(--cad-dim); }
+.cad-props details[open] summary::before { content: "▾ "; }
+.cad-props details > :not(summary) { margin: 8px 10px; }
+.cad-props details[open] { padding-bottom: 4px; }
+.cad-props .btn { height: 24px; font-size: var(--fs-sm); border: 1px solid var(--cad-line); }
+.cad-kv { display: grid; grid-template-columns: 110px 1fr; align-items: center; gap: 6px; font-size: var(--fs-sm); margin: 4px 10px !important; }
+.cad-kv > span:first-child { color: var(--cad-dim); }
+.cad-table { width: 100%; border-collapse: collapse; font-size: var(--fs-xs); }
+.cad-table th, .cad-table td { padding: 3px 4px; border-bottom: 1px solid var(--cad-line); text-align: left; }
+.cad-table .num { text-align: right; font-family: var(--font-mono); }
+.cad-cmd { background: #1B2027; border-top: 1px solid var(--cad-line); font-family: var(--font-mono); font-size: var(--fs-sm); }
+.cad-hist { padding: 4px 10px 0; min-height: 50px; color: var(--cad-dim); }
+.cad-hist .cmd, .cad-hist .echo { color: var(--cad-fg); }
+.cad-hist .warn { color: #FFB454; }
+.cad-cmdline { display: flex; align-items: center; gap: 6px; padding: 4px 10px 6px; }
+.cad-cmdline #cad-prompt { white-space: nowrap; color: var(--cad-fg); }
+.cad-cmdline input { flex: 1; min-width: 0; height: 24px; background: transparent; border: 0; color: #fff; font: inherit; outline: none; text-transform: uppercase; }
+.cad-cmdline input::placeholder { text-transform: none; color: #5D6773; }
+.cad-status { display: flex; align-items: center; gap: 2px; padding: 0 8px; background: #1B2027; border-top: 1px solid var(--cad-line); font-size: var(--fs-xs); }
+.cad-status #cad-coords { min-width: 200px; color: var(--cad-fg); }
+.cad-tab { padding: 0 8px; color: var(--cad-fg); border-bottom: 2px solid var(--cad-sel); line-height: 22px; }
+.cad-status button { height: 20px; padding: 0 8px; border: 1px solid transparent; border-radius: 2px; background: transparent; color: var(--cad-dim); font: 600 10px var(--font-ui); letter-spacing: .04em; }
+.cad-status button:hover { border-color: var(--cad-line); }
+.cad-status button[aria-pressed="true"] { color: #8CC8FF; background: rgba(77,163,255,.14); }
+@media (max-width: 900px) { .cad-body { grid-template-columns: 1fr; grid-template-rows: 1fr 220px; } .cad-props { border-left: 0; border-top: 1px solid var(--cad-line); } }
+
+/* tutorial (coach marks) */
+.tour-mask { position: fixed; inset: 0; z-index: 90; pointer-events: auto; }
+.tour-hole { position: fixed; z-index: 91; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0,0,0,.55); outline: 2px solid var(--accent); transition: all .2s; pointer-events: none; }
+.tour-card { position: fixed; z-index: 92; width: min(360px, calc(100vw - 32px)); padding: 14px 16px; border-radius: 12px; background: var(--bg-panel); border: 1px solid var(--border);
+  box-shadow: var(--shadow-menu); display: grid; gap: 8px; }
+.tour-card h3 { margin: 0; font-size: var(--fs-xl); text-wrap: balance; }
+.tour-card p { margin: 0; color: var(--text-sec); font-size: var(--fs-md); line-height: 1.5; }
+.tour-foot { display: flex; align-items: center; gap: 6px; }
+.tour-foot .step { margin-right: auto; font-size: var(--fs-xs); color: var(--text-dim); }
+
 /* ── status bar ───────────────────────────────────────────────────────── */
 .statusbar { display: flex; align-items: center; gap: 14px; padding: 0 12px; background: var(--bg-panel);
   border-top: 1px solid var(--border); font-size: var(--fs-sm); color: var(--text-sec); white-space: nowrap; overflow: hidden; }

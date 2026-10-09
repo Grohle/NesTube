@@ -30,24 +30,47 @@
     ["Placa base", 400, 4, 8.96, 0.24, 8.76, 1.50, 10.26, 21.90, 41.03],
   ];
 
-  // [name, family, material, h, b, tw, tf, section cm², kg/m]
+  // profile_catalog.CATALOG + one custom profile (U-50x50x40x3 drawn in the
+  // drawing module). [id, name, family, material, h, b, tw, tf, cm², kg/m, image]
   const PROFILES = [
-    ["Correa C 125x50x2", "C", "Acero Galvanizado", 125, 50, 2, 2, 4.5, 3.65],
-    ["Correa Z 150x50x2", "Z", "Acero Galvanizado", 150, 50, 2, 2, 5, 4.05],
-    ["HEA 140", "H", "Acero al Carbono", 133, 140, 5.5, 8.5, 31.4, 24.7],
-    ["IPE 100", "I", "Acero al Carbono", 100, 55, 4.1, 5.7, 10.3, 8.1],
-    ["IPE 200", "I", "Acero al Carbono", 200, 100, 5.6, 8.5, 28.5, 22.4],
-    ["UPN 100", "U", "Acero al Carbono", 100, 50, 6, 8.5, 13.5, 10.6],
-    ["L 50x50x5", "L", "Acero al Carbono", 50, 50, 5, 5, 4.8, 3.77],
-    ["L Aluminio 30x30x3", "L", "Aluminio", 30, 30, 3, 3, 1.71, 0.46],
-    ["Macizo Inox Ø20", "O", "Inoxidable", 20, "", "", "", 3.14, 2.49],
-    ["Perfil Ranurado 20x20", "S", "Aluminio", 20, 20, "", "", 1.66, 0.45],
-    ["Perfil Ranurado 40x40", "S", "Aluminio", 40, 40, "", "", 5.37, 1.45],
-    ["Perfil Ranurado 40x80", "S", "Aluminio", 80, 40, "", "", 9.63, 2.6],
+    ["AC-IPE-100", "IPE 100", "Viga I", "Acero al Carbono", 100, 55, 4.1, 5.7, 10.3, 8.1, "catalog-ac-ipe-100"],
+    ["AC-IPE-200", "IPE 200", "Viga I", "Acero al Carbono", 200, 100, 5.6, 8.5, 28.5, 22.4, "catalog-ac-ipe-200"],
+    ["AC-HEA-140", "HEA 140", "Viga H", "Acero al Carbono", 133, 140, 5.5, 8.5, 31.4, 24.7, "catalog-ac-hea-140"],
+    ["AC-UPN-100", "UPN 100", "Viga U", "Acero al Carbono", 100, 50, 6, 8.5, 13.5, 10.6, "catalog-ac-upn-100"],
+    ["AC-ANG-50", "L 50x50x5", "Angular", "Acero al Carbono", 50, 50, 5, 5, 4.8, 3.77, "catalog-ac-ang-50"],
+    ["AC-TUB-C40", "TC 40x40x3", "Cuadrado", "Acero al Carbono", 40, 40, 3, 3, 4.2, 3.3, "catalog-ac-tub-c40"],
+    ["AC-TUB-R60", "TR Ø60.3x3", "Redondo", "Acero al Carbono", 60.3, "", 3, "", 5.4, 4.24, "catalog-ac-tub-r60"],
+    ["GALV-TC-1/2", "Tubo ISO Ø21.3x2.6 (1/2\")", "Redondo", "Acero Galvanizado", 21.3, "", 2.6, "", 1.53, 1.22, "catalog-galv-tc-1-2"],
+    ["GALV-TC-1", "Tubo ISO Ø33.7x3.2 (1\")", "Redondo", "Acero Galvanizado", 33.7, "", 3.2, "", 3.07, 2.44, "catalog-galv-tc-1"],
+    ["GALV-COR-C125", "Correa C 125x50x2", "Perfil C", "Acero Galvanizado", 125, 50, 2, 2, 4.5, 3.65, "catalog-galv-cor-c125"],
+    ["GALV-COR-Z150", "Correa Z 150x50x2", "Perfil Z", "Acero Galvanizado", 150, 50, 2, 2, 5, 4.05, "catalog-galv-cor-z150"],
+    ["INX-TR-42", "Tubo Inox Ø42.4x1.5", "Redondo", "Acero Inoxidable", 42.4, "", 1.5, "", 1.93, 1.54, "catalog-inx-tr-42"],
+    ["INX-TR-50", "Tubo Inox Ø50.8x1.5", "Redondo", "Acero Inoxidable", 50.8, "", 1.5, "", 2.32, 1.85, "catalog-inx-tr-50"],
+    ["INX-TC-40", "Tubo Inox 40x40x1.5", "Cuadrado", "Acero Inoxidable", 40, 40, 1.5, 1.5, 2.27, 1.81, "catalog-inx-tc-40"],
+    ["INX-MAC-20", "Macizo Inox Ø20", "Redondo", "Acero Inoxidable", 20, "", "", "", 3.14, 2.49, "catalog-inx-mac-20"],
+    ["INX-PLE-50", "Pletina Inox 50x5", "Pletina", "Acero Inoxidable", 50, 5, "", "", 2.5, 1.98, "catalog-inx-ple-50"],
+    ["ALU-RAN-20", "Perfil Ranurado 20x20", "Ranurado", "Aluminio", 20, 20, "", "", 1.66, 0.45, "catalog-alu-ran-20"],
+    ["ALU-RAN-40", "Perfil Ranurado 40x40", "Ranurado", "Aluminio", 40, 40, "", "", 5.37, 1.45, "catalog-alu-ran-40"],
+    ["ALU-RAN-45", "Perfil Ranurado 45x45", "Ranurado", "Aluminio", 45, 45, "", "", 5.55, 1.5, "catalog-alu-ran-45"],
+    ["ALU-RAN-4080", "Perfil Ranurado 40x80", "Ranurado", "Aluminio", 80, 40, "", "", 9.63, 2.6, "catalog-alu-ran-4080"],
+    ["ALU-TUB-R50", "Tubo Al Ø50x2", "Redondo", "Aluminio", 50, "", 2, "", 3.01, 0.81, "catalog-alu-tub-r50"],
+    ["ALU-ANG-30", "L Aluminio 30x30x3", "Angular", "Aluminio", 30, 30, 3, 3, 1.71, 0.46, "catalog-alu-ang-30"],
+    ["CUSTOM-U50", "U-50x50x40x3", "Personalizado", "Acero al Carbono", 50, 50, 3, 3, 4.1, 3.22, "U-50x50x40x3"],
   ];
-  const FAMILIES = [["all", "Todos"], ["I", "IPE / HEA"], ["U", "UPN / C / Z"], ["L", "Angulares"], ["T", "Tubos"], ["O", "Macizos"], ["S", "Ranurados"]];
-  const famOf = (f) => (f === "H" ? "I" : f === "C" || f === "Z" ? "U" : f);
-  let profFamily = "all", profView = "list", profSel = 4;
+  const FAMILIES = [["all", "Todos"], ["vigas", "Vigas I / H / U"], ["Angular", "Angulares"], ["tubos", "Tubos"], ["cz", "Correas C / Z"],
+    ["macizos", "Macizos y pletinas"], ["Ranurado", "Ranurados"], ["Personalizado", "Personalizados"]];
+  function famOf(p) {
+    const f = p[2];
+    if (f === "Viga I" || f === "Viga H" || f === "Viga U") return "vigas";
+    if (f === "Perfil C" || f === "Perfil Z") return "cz";
+    if (f === "Pletina" || /Macizo/.test(p[1])) return "macizos";
+    if (f === "Redondo" || f === "Cuadrado") return "tubos";
+    return f;
+  }
+  const imgOf = (p) => (window.NT_PROFILE_IMAGES || {})[p[10]] || "";
+  const viewerItems = (rows) => rows.map((p) => ({ name: p[1], src: imgOf(p), file: p[10] + ".png", material: p[3], w: 128, h: 128 }));
+  window.NT_PROFILES = { PROFILES, imgOf, viewerItems };
+  let profFamily = "all", profView = "list", profSel = 1;
 
   const STOCK = [
     { prof: "IPE 200", q: "S235-000001-00", len: 6000, qty: 1, ok: true, retal: false, job: "", used: "" },
@@ -164,30 +187,58 @@
 
   // ── Profiles ────────────────────────────────────────────────────────────
   function renderProfiles() {
-    $("#prof-families").innerHTML = FAMILIES.map(([k, l]) => `<button role="tab" aria-selected="${k === profFamily}" data-fam="${k}">${l}</button>`).join("");
+    $("#prof-families").innerHTML = FAMILIES.map(([k, l]) => `<button role="tab" aria-selected="${k === profFamily}" data-fam="${k}">${l} <span style="color:var(--text-dim)">${k === "all" ? PROFILES.length : PROFILES.filter((p) => famOf(p) === k).length}</span></button>`).join("");
     $$("#prof-families [data-fam]").forEach((b) => b.addEventListener("click", () => { profFamily = b.dataset.fam; renderProfiles(); }));
     const q = ($("#prof-search").value || "").toLowerCase();
-    const vis = PROFILES.map((p, i) => [p, i]).filter(([p]) => (profFamily === "all" || famOf(p[1]) === profFamily) && (!q || (p[0] + p[2]).toLowerCase().includes(q)));
+    const vis = PROFILES.map((p, i) => [p, i]).filter(([p]) => (profFamily === "all" || famOf(p) === profFamily) && (!q || (p[1] + p[3] + p[0]).toLowerCase().includes(q)));
     const body = $("#prof-body");
+    const thumb = (p, size) => `<div class="img-tile" style="width:${size}px;height:${size}px"><img src="${imgOf(p)}" alt="" loading="lazy"></div>`;
     if (!vis.length) { body.innerHTML = `<div class="empty-hint">Ningún perfil en esta familia. Crea uno con «Nuevo perfil/tubo».</div>`; }
     else if (profView === "list") {
-      body.innerHTML = `<div style="overflow-x:auto"><table class="table"><thead><tr><th style="width:48px"></th><th>Nombre</th><th>Material</th><th class="num">h</th><th class="num">b</th><th class="num">tw</th><th class="num">tf</th><th class="num">Sección cm²</th><th class="num">Peso kg/m</th></tr></thead><tbody>${
-        vis.map(([p, i]) => `<tr data-prof="${i}" class="${i === profSel ? "selected" : ""}" style="cursor:pointer"><td>${sectionSVG(p[1], 28)}</td><td>${p[0]}</td><td style="color:var(--text-sec)">${p[2]}</td><td class="num">${p[3]}</td><td class="num">${p[4]}</td><td class="num">${p[5]}</td><td class="num">${p[6]}</td><td class="num">${p[7]}</td><td class="num">${p[8]}</td></tr>`).join("")}</tbody></table></div>`;
+      body.innerHTML = `<div style="overflow-x:auto"><table class="table"><thead><tr><th style="width:56px"></th><th>Nombre</th><th>Tipo</th><th>Material</th><th class="num">h</th><th class="num">b</th><th class="num">tw</th><th class="num">tf</th><th class="num">Sección cm²</th><th class="num">Peso kg/m</th></tr></thead><tbody>${
+        vis.map(([p, i]) => `<tr data-prof="${i}" class="${i === profSel ? "selected" : ""}" style="cursor:pointer"><td style="padding:3px 6px">${thumb(p, 40)}</td><td>${p[1]}</td><td style="color:var(--text-sec)">${p[2]}</td><td style="color:var(--text-sec)">${p[3]}</td><td class="num">${p[4]}</td><td class="num">${p[5]}</td><td class="num">${p[6]}</td><td class="num">${p[7]}</td><td class="num">${p[8]}</td><td class="num">${p[9]}</td></tr>`).join("")}</tbody></table></div>`;
     } else {
-      body.innerHTML = `<div class="cards">${vis.map(([p, i]) => `<div class="card${i === profSel ? " active" : ""}" data-prof="${i}"><div class="card-thumb">${sectionSVG(p[1], 72)}</div><h3>${p[0]}</h3><div class="meta"><span>${p[2]}</span><span class="mono">${p[8]} kg/m</span></div></div>`).join("")}</div>`;
+      body.innerHTML = `<div class="cards">${vis.map(([p, i]) => `<div class="card${i === profSel ? " active" : ""}" data-prof="${i}"><div class="img-tile zoomable" data-zoom="${i}" style="height:120px" title="Ver imagen"><img src="${imgOf(p)}" alt="" loading="lazy"></div><h3>${p[1]}</h3><div class="meta"><span>${p[3]}</span><span class="mono">${p[9]} kg/m</span></div></div>`).join("")}</div>`;
     }
+    const visRows = vis.map(([p]) => p);
     $$("#prof-body [data-prof]").forEach((r) => {
-      r.addEventListener("click", () => { profSel = +r.dataset.prof; renderProfiles(); });
+      r.addEventListener("click", (e) => {
+        if (e.target.closest("[data-zoom]")) { window.NT_VIEWER.open(viewerItems(visRows), vis.findIndex(([, i]) => i === +r.dataset.prof)); return; }
+        profSel = +r.dataset.prof; renderProfiles(); });
       r.addEventListener("dblclick", () => window.NT.dialog("profile-creator"));
     });
     const p = PROFILES[profSel];
-    $("#prof-inspector").innerHTML = `<div class="section"><div class="card-thumb" style="height:160px">${sectionSVG(p[1], 140)}</div>
-      <div class="section-head"><span class="section-title" style="font-size:var(--fs-lg)">${p[0]}</span><span class="chip">${p[2]}</span></div></div>
+    $("#prof-inspector").innerHTML = `<div class="section">
+        <div class="img-tile zoomable" id="prof-img" style="height:180px" title="Abrir en el visor de imágenes"><img src="${imgOf(p)}" alt="Imagen del perfil ${p[1]}"></div>
+        <div style="display:flex;gap:6px"><button class="btn outline" style="flex:1" id="prof-img-open">${ICON("fit", "sm")}Ver imagen</button><button class="btn outline" style="flex:1" data-dialog="profile-manager">${ICON("image", "sm")}Asignar imagen</button></div>
+        <div class="section-head"><span class="section-title" style="font-size:var(--fs-lg)">${p[1]}</span><span class="chip">${p[2]}</span></div>
+        <div style="font-size:var(--fs-sm);color:var(--text-sec)">${p[3]} · <span class="mono">${p[0]}</span></div></div>
       <div class="section"><div class="section-head"><span class="section-title">Geometría</span></div><div class="field-grid">
-        ${[["h", p[3], "mm"], ["b", p[4], "mm"], ["tw", p[5], "mm"], ["tf", p[6], "mm"]].map(([k, v, u]) => `<div class="field"><span class="label">${k}</span><div class="input"><span class="pre">${k}</span><input class="num" value="${v === "" ? "—" : v}" readonly><span class="unit">${u}</span></div></div>`).join("")}
+        ${[["h", p[4], "mm"], ["b", p[5], "mm"], ["tw", p[6], "mm"], ["tf", p[7], "mm"]].map(([k, v, u]) => `<div class="field"><span class="label">${k}</span><div class="input"><span class="pre">${k}</span><input class="num" value="${v === "" ? "—" : v}" readonly><span class="unit">${u}</span></div></div>`).join("")}
       </div></div>
-      <div class="section"><div class="stats" style="grid-template-columns:1fr 1fr"><div class="stat"><span class="v">${p[7]}</span><span class="k">sección cm²</span></div><div class="stat"><span class="v">${p[8]}</span><span class="k">peso kg/m</span></div></div></div>
-      <div class="section"><button class="btn outline block" data-dialog="profile-creator">${ICON("pencil", "sm")}Editar dibujo</button><button class="btn outline block" data-dialog="materials">Cambiar material</button></div>`;
+      <div class="section"><div class="stats" style="grid-template-columns:1fr 1fr"><div class="stat"><span class="v">${p[8]}</span><span class="k">sección cm²</span></div><div class="stat"><span class="v">${p[9]}</span><span class="k">peso kg/m</span></div></div></div>
+      <div class="section"><button class="btn outline block" data-dialog="profile-creator">${ICON("pencil", "sm")}Editar dibujo</button><button class="btn outline block" data-dialog="materials">Cambiar material</button><button class="btn primary block" data-act="use-profile">Usar en Costes</button></div>`;
+    const openViewer = () => window.NT_VIEWER.open(viewerItems(visRows.length ? visRows : PROFILES), Math.max(0, visRows.indexOf(p)));
+    $("#prof-img").addEventListener("click", openViewer); $("#prof-img-open").addEventListener("click", openViewer);
+  }
+
+  // ── Costs profile gallery (ProfileTile row: MRU + builtins + "+") ───────
+  let costProfile = "AC-IPE-200";
+  function renderCostGallery() {
+    const mru = ["AC-IPE-200", "AC-HEA-140", "AC-TUB-C40", "CUSTOM-U50", "AC-UPN-100"].map((id) => PROFILES.find((p) => p[0] === id));
+    $("#cost-gallery").innerHTML = mru.map((p) => `<div class="ptile${p[0] === costProfile ? " active" : ""}" data-cp="${p[0]}" title="${p[1]} · ${p[3]}"><div class="img-tile"><img src="${imgOf(p)}" alt=""></div><span>${p[1]}</span></div>`).join("") +
+      `<button class="ptile add" data-dialog="profile-creator" title="Añadir perfil (módulo de dibujo)">+</button>`;
+    $$("#cost-gallery [data-cp]").forEach((t) => {
+      t.addEventListener("click", () => { costProfile = t.dataset.cp; renderCostGallery(); });
+      t.addEventListener("dblclick", () => window.NT_VIEWER.open(viewerItems(mru), mru.findIndex((p) => p[0] === t.dataset.cp)));
+    });
+    const p = PROFILES.find((x) => x[0] === costProfile);
+    $("#cost-profile-img").innerHTML = `<img src="${imgOf(p)}" alt="Imagen del perfil ${p[1]}">`;
+    $("#cost-profile-img").onclick = () => window.NT_VIEWER.open(viewerItems(mru), mru.indexOf(p));
+    $("#cost-profile-name").textContent = p[1]; $("#cost-profile-mat").textContent = p[3];
+    $("#cost-profile-dims").innerHTML = [["h", p[4], "mm"], ["b", p[5], "mm"], ["tw", p[6], "mm"], ["tf", p[7], "mm"], ["Sección", p[8], "cm²"], ["Peso lineal", p[9], "kg/m"]]
+      .map(([k, v, u]) => `<span>${k}</span><span>${v === "" ? "—" : v + " " + u}</span>`).join("");
+    const sel = $("#cost-profile-combo"); if (sel && !sel.options.length) sel.innerHTML = `<option>Todos los perfiles</option>` + PROFILES.map((x) => `<option value="${x[0]}">${x[1]}</option>`).join("");
   }
 
   // ── Stock ───────────────────────────────────────────────────────────────
@@ -222,7 +273,7 @@
 
   // ── wiring ──────────────────────────────────────────────────────────────
   function init() {
-    renderPages(); renderJobs(); renderCuts(); renderCosts(); renderProfiles(); renderStock();
+    renderPages(); renderJobs(); renderCuts(); renderCosts(); renderCostGallery(); renderProfiles(); renderStock();
     $("#jobs-search").addEventListener("input", renderJobs); $("#jobs-field").addEventListener("change", renderJobs);
     $("#prof-search").addEventListener("input", renderProfiles);
     $$("#prof-viewmode [data-pv]").forEach((b) => b.addEventListener("click", () => {
@@ -249,6 +300,7 @@
       "costs-calc": () => confirmDialog({ title: "Confirmar configuración de costes", text: "¿Continuar con esta configuración de costes? Modo: cortes compartidos (optimizado) · 0,85 €/kg · margen 15 %.", okLabel: "Calcular", danger: false, ok: () => { renderCosts(); toast("Costes recalculados"); } }),
       "costs-clear": () => { $("#cost-table tbody").innerHTML = `<tr><td colspan="9" class="empty-hint">Configura el perfil y pulsa Calcular</td></tr>`; $("#cost-table tfoot").innerHTML = ""; $("#cost-kpis").innerHTML = ""; },
       "stock-export": () => toast("Stock exportado a Excel"),
+      "use-profile": () => { costProfile = PROFILES[profSel][0]; renderCostGallery(); showView("costs"); toast(`${PROFILES[profSel][1]} aplicado en Costes`); },
       "stock-delete": () => confirmDialog({ title: "Eliminar del stock", text: `¿Eliminar ${STOCK[stockSel].prof} · ${STOCK[stockSel].q}?`, ok: () => { STOCK.splice(stockSel, 1); stockSel = 0; renderStock(); } }),
     });
   }

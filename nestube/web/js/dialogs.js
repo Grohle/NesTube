@@ -47,24 +47,39 @@
         <div style="display:flex;gap:6px"><button class="btn outline">Nueva</button><button class="btn danger">Eliminar</button></div></div>
         <div style="display:grid;gap:10px;align-content:start">${hint("Completa los campos y pulsa Guardar. Selecciona un material de la lista para editarlo.")}${fld("Nombre del material", "Acero al Carbono")}${fld("Calidad", "S235")}${fld("Peso específico", "7.85", { unit: "t/m³", num: true })}</div></div>`,
       foot: foot(B.close, pri("Guardar", "Material guardado.")) },
-    "profile-manager": { title: "Gestionar perfiles", wide: true, body: `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    "profile-manager": { title: "Gestionar perfiles", wide: true, body: () => {
+        const P = window.NT_PROFILES, rows = P.PROFILES.filter((p) => p[2] === "Personalizado" || /Ranurado|Inox 40x40/.test(p[1]));
+        const sel = rows[0];
+        return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
         <div style="display:grid;gap:8px;align-content:start"><div class="search">${I("search", "")}<input placeholder="Buscar perfil, material o calidad…"></div>
-        ${table(["Perfil", "Material"], [["Perfil Ranurado 40x80", "Aluminio"], ["Tubo □ 40×40×2", "Inoxidable"], ["U-50x50x40x3", "Acero al Carbono"]])}
-        <div style="display:flex;gap:6px"><button class="btn outline" data-dialog="profile-creator">Módulo de dibujo</button><button class="btn danger">Eliminar</button></div></div>
-        <div style="display:grid;gap:10px;align-content:start">${fld("Nombre", "Perfil Ranurado 40x80")}${grid(fld("Material", "Aluminio"), fld("Calidad", "6063-T5"))}${fld("Peso específico", "2.70", { unit: "t/m³", num: true })}
-        <div class="section-head"><span class="section-title">Dimensiones</span><button class="btn outline" style="height:24px">Editar campos</button></div>${grid(fld("h", "80", { unit: "mm", num: true }), fld("b", "40", { unit: "mm", num: true }))}
-        <button class="btn outline">Asignar imagen</button></div></div>`, foot: foot(B.close, pri("Guardar")) },
-    "profile-creator": { title: "Módulo de dibujo · Editor de perfil", wide: "xl", body: `<div style="display:grid;grid-template-columns:150px 1fr 200px;gap:12px;min-height:380px">
-        <div style="display:grid;gap:8px;align-content:start"><span class="eyebrow">Herramientas</span><div class="tool-rail" style="grid-template-columns:repeat(2,1fr)">
-          ${TOOLS.map(([ic, l], i) => `<button class="btn${i === 1 ? " outline" : ""}" aria-pressed="${i === 1}" title="${l}">${I(ic, "")}<span>${l}</span></button>`).join("")}</div>
-          <button class="btn outline" aria-pressed="false">${I("ortho")}Ortogonal</button>
-          <div style="display:flex;gap:4px"><button class="btn icon-only outline" title="Deshacer (Ctrl+Z)">${I("undo")}</button><button class="btn icon-only outline" title="Rehacer (Ctrl+Y)">${I("redo")}</button></div></div>
-        <div class="canvas-wrap" style="border-radius:8px;min-height:360px"><svg viewBox="0 0 300 260" style="position:absolute;inset:0;width:100%;height:100%"><path d="M70 40h160v22h-68v136h68v22H70v-22h68V62H70z" fill="color-mix(in srgb,var(--accent) 14%,transparent)" stroke="var(--accent)" stroke-width="1.5"/><text x="150" y="32" text-anchor="middle" class="dim-text">b = 100</text><text x="244" y="134" class="dim-text">h = 200</text></svg>
-          <div class="hint-toast" style="bottom:12px">Clic para añadir puntos · <kbd>Enter</kbd> longitud · <kbd>Tab</kbd>/<kbd>&lt;</kbd> ángulo · Doble-clic o <kbd>Esc</kbd> para terminar</div></div>
-        <div style="display:grid;gap:8px;align-content:start"><span class="eyebrow">Datos del perfil</span>${fld("Perfil/Material", "IPE 200")}${fld("Material", "Acero al Carbono")}${fld("Calidad", "S235")}
-          ${grid(fld("Sección", "28.5", { unit: "cm²", num: true }), fld("Kg por metro", "22.4", { num: true }))}${grid(fld("Precio €/kg", "0.85", { num: true }), fld("Precio €/m", "", { num: true }))}
-          <span class="eyebrow">Lados y espesores</span>${fld("Espesor", "5.6", { unit: "mm", num: true })}<button class="btn outline">Asignar espesor a la selección</button><button class="btn outline">Asignar dimensión</button></div></div>`,
-      foot: foot(`<button class="btn outline">⭳ Importar DXF</button>`, `<button class="btn outline">⭱ Exportar DXF</button>`, `<button class="btn outline">⭱ Exportar PNG</button>`, `<button class="btn outline">Importar imagen</button>`, `<span style="flex:1"></span>`, `<button class="btn outline">Limpiar</button>`, `<button class="btn outline">⮕ Generar perfil (dibujo actual)</button>`, pri("Guardar")) },
+          <div class="list" style="max-height:300px;overflow:auto">${rows.map((p, i) => `<div class="row${i === 0 ? " active" : ""}"><div class="img-tile" style="width:40px;height:40px;flex:none"><img src="${P.imgOf(p)}" alt=""></div><div class="row-main"><span class="row-title">${p[1]}</span><span class="row-sub" style="font-family:var(--font-ui)">${p[3]}</span></div></div>`).join("")}</div>
+          <div style="display:flex;gap:6px"><button class="btn outline" data-dialog="profile-creator">${I("pencil")}Módulo de dibujo</button><button class="btn danger">Eliminar</button></div></div>
+        <div style="display:grid;gap:10px;align-content:start">
+          <div class="field"><span class="label">Imagen del perfil</span><div class="img-tile zoomable" style="height:140px" data-viewimg="${sel[0]}" title="Abrir en el visor de imágenes"><img src="${P.imgOf(sel)}" alt=""></div></div>
+          <div style="display:flex;gap:6px"><button class="btn outline" style="flex:1" data-viewimg="${sel[0]}">${I("fit")}Ver imagen</button><button class="btn outline" style="flex:1" data-toast="Elige un PNG o JPEG (.png, .jpg, .jpeg)">${I("image")}Asignar imagen</button></div>
+          ${fld("Nombre", sel[1])}${grid(fld("Material", sel[3]), fld("Calidad", "S235"))}${fld("Peso específico", "7.85", { unit: "t/m³", num: true })}
+          <div class="section-head"><span class="section-title">Dimensiones</span><button class="btn outline" style="height:24px" data-dialog="profile-save">Editar campos</button></div>${grid(fld("h", sel[4], { unit: "mm", num: true }), fld("b", sel[5], { unit: "mm", num: true }))}</div></div>`; },
+      foot: foot(B.close, pri("Guardar", "Perfil guardado.")) },
+    "profile-save": { title: "Editar tipo de perfil", ok: "Guardar", done: "Perfil guardado en la base de datos.", body: hint("El perfil se guardará directamente en la base de datos.") +
+      grid(fld("Nombre del campo", "U-50x50x40x3"), fld("Material", "Acero al Carbono"), fld("Calidad", "S235"), fld("Peso específico", "7.85", { unit: "t/m³", num: true })) +
+      `<div class="section-head"><span class="section-title">Campos</span><button class="btn outline" style="height:24px">Editar campos</button></div>` +
+      table(["Campo", "Valor por defecto"], [["h", "50"], ["b", "50"], ["b2", "40"], ["t", "3"]]) + fld("Notas", "") },
+    "material-picker": { title: "Buscar perfiles y tubos", wide: true, body: () => {
+        const P = window.NT_PROFILES;
+        return `<div style="display:grid;grid-template-columns:1fr 220px;gap:16px">
+          <div style="display:grid;gap:8px;align-content:start"><div style="display:flex;gap:8px"><div class="search" style="flex:1">${I("search", "")}<input placeholder="Material"></div></div>
+            <span class="eyebrow">Perfiles y tubos</span>
+            <div class="cards" style="grid-template-columns:repeat(auto-fill,minmax(104px,1fr));max-height:340px;overflow:auto">${P.PROFILES.map((p, i) => `<div class="card${i === 1 ? " active" : ""}" style="padding:6px;gap:4px"><div class="img-tile" style="height:72px"><img src="${P.imgOf(p)}" alt="" loading="lazy"></div><span style="font-size:var(--fs-xs)">${p[1]}</span></div>`).join("")}</div></div>
+          <div style="display:grid;gap:8px;align-content:start"><span class="eyebrow">Materiales</span>
+            <div class="list">${["Acero al Carbono · S235", "Acero al Carbono · S275", "Acero Galvanizado · DX51D", "Acero Inoxidable · AISI 304", "Aluminio · 6063-T5"].map((m, i) => `<div class="row${i === 0 ? " active" : ""}"><span class="row-title">${m}</span></div>`).join("")}</div>
+            <button class="btn outline" data-dialog="materials">Gestionar materiales</button></div></div>`; },
+      foot: foot(B.cancel, pri("Seleccionar")) },
+    "retales": { title: "Generar retales", wide: true, body: hint("Selecciona retales para añadir al stock") +
+      `<div style="display:flex;gap:8px;align-items:end">${fld("Largo mínimo retal", "500", { unit: "mm", num: true })}<button class="btn outline">${I("refresh")}Actualizar</button></div>` +
+      `<span class="eyebrow">Retales válidos</span>` +
+      table(["", "Barra", "Largo retal"], [["<input type='checkbox' checked style='accent-color:var(--accent)'>", "Barra 5", "1216 mm"], ["<input type='checkbox' checked style='accent-color:var(--accent)'>", "Barra 6", "1182 mm"], ["<input type='checkbox' style='accent-color:var(--accent)'>", "Barra 7", "397 mm (bajo mínimo)"]]),
+      foot: foot(`<button class="btn danger">Eliminar seleccionados</button>`, `<button class="btn danger">Eliminar todos</button>`, `<span style="flex:1"></span>`, B.cancel, pri("Añadir al stock", "Retales guardados en stock.")) },
+    "profile-creator": { title: "Módulo de dibujo", open: () => window.NT_CAD.open() },
     "pdf-font": { title: "Fuente PDF", ok: "Guardar", body: sel("Fuente", ["IBM Plex Sans", "DejaVu Sans", "DejaVu Sans Mono"]) + hint("Fuentes Unicode incluidas con la app; se usan en todos los PDF exportados.") },
     "pdf-template": { title: "Plantilla PDF base", ok: "Guardar", body: hint("Plantilla base usada por los PDF de anidado y de presupuesto.") +
       `<div class="field"><label>Plantilla FastReport</label><div style="display:flex;gap:6px"><div class="input" style="flex:1"><input placeholder="Sin plantilla FastReport configurada." readonly></div><button class="btn outline">Examinar…</button></div></div><div style="display:flex;gap:6px"><button class="btn outline">Abrir en FastReport</button><button class="btn outline">Descargar FastReport</button></div>` },

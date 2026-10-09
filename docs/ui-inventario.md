@@ -193,7 +193,7 @@ Como en Qt (`WidgetWithChildrenShortcut`), los atajos de Anidado solo actúan en
 
 ## 10. Ventanas (diálogos)
 
-Todas están maquetadas en `nestube/web/js/dialogs.js` y se pueden revisar desde **Ayuda › Catálogo de ventanas y avisos**.
+Todas están maquetadas en `nestube/web/js/dialogs.js` (el módulo de dibujo, en `js/cad.js`) y se pueden revisar desde **Ayuda › Catálogo de ventanas y avisos**.
 
 | Ventana (Qt) | Contenido principal |
 |---|---|
@@ -240,6 +240,61 @@ Avisos ya conectados a su flujo real en la maqueta:
 - Restablecer ajustes.
 - Guardar y eliminar job.
 - Restaurar una copia de seguridad.
+
+## 12. Visor de imágenes de perfiles
+
+Las miniaturas de perfil son los PNG de `Profiles/` (`app_config.PROFILES_DIR`), las que asigna el usuario o las generadas desde el módulo de dibujo. En Qt aparecen en cuatro sitios; en la web, en todos ellos y además en un visor a pantalla completa.
+
+| Dónde (Qt) | Web |
+|---|---|
+| Galería de Costes (`ProfileTile`: hasta 5 recientes + tile `+` Añadir perfil; combo "Todos los perfiles"; modo bloqueado con un perfil de catálogo) | Costes › panel izquierdo › **Perfil**: rejilla de miniaturas, `+`, combo, ficha con imagen grande. Doble clic en una miniatura abre el visor |
+| Catálogo Perfiles y Tubos (Lista con icono / Cuadrícula con iconos) | Miniatura real en la lista y en la cuadrícula; el inspector muestra la imagen grande, **Ver imagen** y **Asignar imagen** |
+| Gestionar perfiles (miniatura en la lista + Asignar imagen) | Miniaturas en la lista, imagen grande clicable, **Ver imagen** y **Asignar imagen** (PNG o JPEG) |
+| Módulo de dibujo (vista previa · ⮕ Generar perfil · Importar imagen) | Paleta Propiedades › **Imagen del perfil**: Generar (desde el dibujo actual), Importar imagen y clic para abrir el visor |
+| Buscar perfiles y tubos (selector de material) | Rejilla de miniaturas + lista de materiales + Gestionar materiales |
+
+**Visor** (nuevo): anterior/siguiente con tira de miniaturas; zoom con la rueda, `+`, `−`, `0` (ajustar) y `1` (1:1); fondo de cuadros, claro u oscuro (`B`); nombre del archivo, tamaño en px y material; botones Asignar imagen y Exportar PNG; `Esc` para cerrar.
+
+## 13. Módulo de dibujo (estilo AutoCAD)
+
+Mismas herramientas y comportamiento que `profile_creator.py`, organizados como en AutoCAD para que quien venga de AutoCAD lo entienda a la primera.
+
+| Zona | Contenido |
+|---|---|
+| Cinta de opciones | **Dibujo**: Línea, Polígono, Rectángulo, Círculo, Arco 3 puntos, Arco centro-inicio-fin, Arco exacto… · **Modificar**: Borrar, Recortar, Extender · **Perfil**: Marcar vano, Asignar dimensión, Asignar espesor · **Utilidades**: Seleccionar, Deshacer, Rehacer, Zoom extensión · **Archivo**: Importar DXF, Exportar DXF, Exportar PNG (transparente) |
+| Espacio modelo | Fondo oscuro, cursor en cruz con caja de selección, icono SCP (X/Y), rejilla de 10 mm (mayor cada 50), Y hacia arriba, unidades en mm, etiqueta de ventana gráfica `[−][Superior][2D Estructura alámbrica]` |
+| Referencias a objetos | Mismo orden de prioridad que `_snap`: Punto final □ · Punto medio △ · Centro ○ · Cercano ⧖ · Rejilla, con marcador amarillo y etiqueta |
+| Entrada dinámica | Junto al cursor: campos de longitud y ángulo. Se teclea la longitud; `Tab` o `<` pasa al ángulo; `Enter` fija el punto (igual que en Qt) |
+| Línea de comandos | Historial de 3 líneas + mensaje de la orden activa ("LINEA Precise punto siguiente o [Deshacer]:"). Acepta coordenadas absolutas `X,Y` |
+| Barra de estado | Coordenadas X, Y, Z · MODELO · **REJILLA** (F7) · **FORZC** (F9) · **ORTO** (F8) · **REFENT** (F3) ▾ modos · **DIN** (F12) |
+| Paleta Propiedades | Imagen del perfil · Selección (tipo, longitud, vano) · Asignar dimensión / espesor · Lados y espesores (+ lado manual, quitar último) · Datos del perfil |
+| Barra de título | Limpiar · ⮕ Generar perfil (dibujo actual) · Guardar · Cerrar |
+
+**Órdenes y alias** (nuevos, solo en el módulo de dibujo):
+
+| Orden | Alias |
+|---|---|
+| LINEA (polilínea) | `L`, `PL`, `LINEA`, `LINE` |
+| POLIGONO | `POL` (pide número de lados, por defecto 6) |
+| RECTANG | `REC` |
+| CIRCULO | `C` |
+| ARCO 3 puntos / centro-inicio-fin / exacto | `A` / `ACIF` / `AE` |
+| BORRA | `B`, `E`, `Supr` con selección |
+| RECORTA | `TR` |
+| ALARGA (extender) | `EX`, `AL` |
+| VANO (marcar hueco) | `VANO` |
+| ZOOM extensión | `Z`, doble clic con la rueda |
+| Deshacer / Rehacer | `U`, `Ctrl+Z` / `Ctrl+Y` |
+
+`Enter` o `Espacio` con la línea de comandos vacía repiten la última orden (igual que AutoCAD). `Esc` cancela la orden y, si no hay ninguna activa, la selección. Clic derecho termina la polilínea o repite la orden. Escribir en cualquier parte va a la línea de comandos. Rueda = zoom en el cursor; botón central = desplazar.
+
+## 14. Tutorial interactivo
+
+Los mismos 14 pasos y textos de `tutorial.py` (Bienvenido, Las pestañas, Añade tus cortes, Parámetros de barra, Calcular, Auto-anidar, Estrategia, Tiempo de optimización, Ajuste manual, Costes y Peso, Perfiles y Tubos, Stock, Trabajos, ¡Listo!). Se muestran como tarjetas que resaltan el control correspondiente. Botones Saltar / Atrás / Siguiente / Terminar; teclas `→` `Enter` `Espacio` (siguiente), `←` (atrás) y `Esc` (salir). Se abre desde **Ayuda › Tutorial interactivo**.
+
+## 15. Ventanas añadidas en esta revisión
+
+Generar retales (Largo mínimo retal, Actualizar, Retales válidos, Añadir al stock, Eliminar seleccionados, Eliminar todos) · Editar/Añadir tipo de perfil (campos, material, peso específico, calidad, notas, Editar campos) · Buscar perfiles y tubos (selector de material con miniaturas).
 
 ### Lista completa de avisos
 

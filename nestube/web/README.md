@@ -17,6 +17,10 @@ and no network dependencies; fonts come from `nestube/fonts/`.
 | `js/views.js` | Jobs, Cuts, Costs, Profiles and Stock views |
 | `js/dialogs.js` | Every Qt dialog as a layout |
 | `js/alerts.js` | Every `QMessageBox` in `ui_qt/` (generated, Spanish text) |
+| `js/cad.js` | Drawing module (profile creator) with an AutoCAD-style layout: ribbon, command line, object snaps, dynamic input |
+| `js/viewer.js` | Full-window profile image viewer |
+| `js/profile-images.js` | `Profiles/*.png` embedded as data URIs (generated) |
+| `js/tutorial.js` | Interactive tutorial (same steps as `ui_qt/tutorial.py`) |
 | `js/app.js` | Main menu, keyboard shortcuts, action routing, Nesting panels |
 
 The full inventory of menus, buttons, shortcuts, dialogs and alerts, and where
