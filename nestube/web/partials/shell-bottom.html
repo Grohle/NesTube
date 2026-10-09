@@ -1,0 +1,31 @@
+  </main>
+
+  <!-- ═══════════════════════ STATUS BAR ═══════════════════════ -->
+  <footer class="statusbar">
+    <span><span class="status-dot"></span>Datos de ejemplo</span>
+    <span class="mono" id="status-main">—</span>
+    <span class="spacer"></span>
+    <span class="mono" id="status-cursor"></span>
+    <span>Esc: deseleccionar</span>
+    <span>BD local · nestube_geometry.db</span>
+    <span>v1.0.0-pre-alpha.1</span>
+  </footer>
+</div>
+
+<div class="hint-toast" id="toast" hidden style="position:fixed;bottom:40px;z-index:70"></div>
+
+<div class="modal-backdrop" id="modal-backdrop" hidden>
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-head"><h2 id="modal-title"></h2><button class="btn icon-only" data-close title="Cerrar (Esc)"><svg class="icon"><use href="#i-x"/></svg></button></div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-foot" id="modal-foot"></div>
+  </div>
+</div>
+
+<script src="js/ui.js"></script>
+<script src="js/nesting.js"></script>
+<script src="js/dialogs.js"></script>
+<script src="js/views.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
