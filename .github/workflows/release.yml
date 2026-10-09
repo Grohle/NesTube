@@ -63,9 +63,15 @@ jobs:
       - name: Package portable zip + installer (Windows)
         if: matrix.platform == 'windows'
         shell: pwsh
+        env:
+          # Optional Authenticode certificate (docs/signing.md). Without it the
+          # executables stay unsigned and the build only prints a warning.
+          WINDOWS_CERT_PFX_BASE64: ${{ secrets.WINDOWS_CERT_PFX_BASE64 }}
+          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
         run: |
           if (-not (Test-Path "dist\NesTube\NesTube.exe")) { throw "PyInstaller output missing" }
           $ver = python -c "from nestube import __version__; print(__version__)"
+          .\packaging\sign_windows.ps1 "dist\NesTube\NesTube.exe"
           Compress-Archive -Path "dist\NesTube" -DestinationPath "NesTube-$ver-windows.zip" -Force
 
           choco install innosetup -y --no-progress
@@ -73,6 +79,7 @@ jobs:
           if (-not (Test-Path $iscc)) { $iscc = "$env:ProgramFiles\Inno Setup 6\ISCC.exe" }
           if (-not (Test-Path $iscc)) { throw "ISCC.exe not found after Inno Setup install" }
           & $iscc "/DMyAppVersion=$ver" "packaging\nestube.iss"
+          .\packaging\sign_windows.ps1 "NesTube-$ver-setup.exe"
 
           Get-ChildItem "NesTube-*-windows.zip", "NesTube-*-setup.exe" | Format-Table Name, Length
 

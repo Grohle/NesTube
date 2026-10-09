@@ -31,6 +31,19 @@ _BOOTSTRAP = r"""
         var go = function () {
           bridge.call(method, JSON.stringify(args || {}), function (s) {
             var r; try { r = JSON.parse(s); } catch (e) { r = { ok: false, error: String(e), alerts: [] }; }
+            // An engine dialog drawn by the page: ask, then repeat the call
+            // with the answer (nestube/ui_web/dialogs.py).
+            if (r && r.needs && window.NT_ASK) {
+              var needs = r.needs;
+              window.NT_ASK(needs).then(function (ans) {
+                if (ans === null || ans === undefined) { delete r.needs; r.cancelled = true; resolve(r); return; }
+                var a = Object.assign({}, args || {});
+                a._answers = Object.assign({}, a._answers || {});
+                a._answers[needs.dialog] = ans;
+                window.NTB.call(method, a).then(resolve);
+              });
+              return;
+            }
             resolve(r);
           });
         };

@@ -1023,8 +1023,12 @@ class NesTubeApp(QMainWindow):
         import json as _json
         import logging
         try:
+            # Flushing the ACTIVE tab captures in-progress edits (the Cuts tab
+            # included, when it is the active one). Re-reading the Cuts tab
+            # unconditionally copied its header — a material search box that
+            # is only refreshed when the tab is shown — over the context, so
+            # a material picked in Nesting or Costs was wiped by this check.
             self._flush_main_tab(self._tabs.currentIndex())
-            self._state.reset_from(self._tab_cortes.get_current_state())
             self._tab_nesting.sync_to_state()
             save_state_to_context(self._state, self._state.active_material_index)
         except Exception:

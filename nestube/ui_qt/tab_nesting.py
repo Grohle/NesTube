@@ -38,8 +38,9 @@ from nestube.nesting_engine import (
 )
 from shapely.geometry import LineString as _ShLine
 from shapely import affinity as _sh_affinity
-from nestube.logic import eficiencia_barras
-from nestube.ui_qt.nesting_scene import NestingScene, PlacedPieceItem, BAR_GAP_MM, _text_color_for_bg
+from nestube.ui_qt.nesting_scene import (
+    NestingScene, PlacedPieceItem, BAR_GAP_MM, _text_color_for_bg, bar_usage_pct, piece_end,
+)
 from nestube.ui_qt.nesting_view import NestingView
 from nestube.ui_qt.widgets.material_subtabs import MaterialSubTabs
 import nestube.ui_qt.theme_qt as _th
@@ -117,6 +118,24 @@ class PieceInfo:
     @property
     def remaining(self) -> int:
         return max(0, self.total_qty - self.placed_qty)
+
+
+def cut_key(c) -> tuple:
+    """Identity of a cut for matching placed pieces to the cut list.
+
+    Name and length alone mixed up two cuts that only differ in their miters
+    (same name and length, other angle or direction): a placed piece could be
+    counted, highlighted or restored as the wrong one.
+    """
+    def end(on, d, deg):
+        return (True, str(d), round(float(deg), 3)) if on else (False, "", 0.0)
+    return (c.descripcion, round(float(c.largo), 3),
+            end(c.inglete1, c.inglete1_dir, c.inglete1_deg),
+            end(c.inglete2, c.inglete2_dir, c.inglete2_deg))
+
+
+def same_cut(a, b) -> bool:
+    return a is b or cut_key(a) == cut_key(b)
 
 
 # ── Auto-nest worker ──────────────────────────────────────────────────────────
@@ -1128,9 +1147,7 @@ class TabNesting(QWidget):
         LEFT end sat on the pointer, and dropping it back "where it was" sent
         it hundreds of mm away (to whichever slot was nearest its left end).
         """
-        pi = next((p for p in self._pieces if p.corte is pp.corte or (
-            p.corte.descripcion == pp.corte.descripcion and p.corte.largo == pp.corte.largo
-        )), None)
+        pi = next((p for p in self._pieces if same_cut(p.corte, pp.corte)), None)
         if pi is None:
             return
         self._push_undo()
@@ -1943,9 +1960,7 @@ class TabNesting(QWidget):
         self._rebuild_scene()
 
     def _pi_for_corte(self, corte) -> Optional["PieceInfo"]:
-        return next((p for p in self._pieces if p.corte is corte or (
-            p.corte.descripcion == corte.descripcion and p.corte.largo == corte.largo
-        )), None)
+        return next((p for p in self._pieces if same_cut(p.corte, corte)), None)
 
     def _delete_selected_placed(self) -> None:
         """Borrar: remove the selected pieces from their bars, keep pending qty."""
@@ -2037,6 +2052,10 @@ class TabNesting(QWidget):
     def _serialize_bars(self) -> list:
         return [
             [{"descripcion": pp.corte.descripcion, "largo": pp.corte.largo,
+              "inglete1": pp.corte.inglete1, "inglete1_dir": pp.corte.inglete1_dir,
+              "inglete1_deg": pp.corte.inglete1_deg,
+              "inglete2": pp.corte.inglete2, "inglete2_dir": pp.corte.inglete2_dir,
+              "inglete2_deg": pp.corte.inglete2_deg,
               "x_offset": pp.x_offset, "rotation": pp.rotation,
               "flipped_h": pp.flipped_h, "flipped_v": pp.flipped_v,
               "color": pp.color, "bar_index": pp.bar_index}
@@ -2051,7 +2070,10 @@ class TabNesting(QWidget):
         for bar_snap in snapshot:
             bar: List[PlacedPiece] = []
             for item in bar_snap:
+                key = None
                 if isinstance(item, dict):
+                    if "inglete1" in item:   # saved with the miters (full identity)
+                        key = cut_key(Corte.from_dict(item))
                     desc = item.get("descripcion", "")
                     largo = item.get("largo", 0.0)
                     x_off = item.get("x_offset", 0.0)
@@ -2062,9 +2084,18 @@ class TabNesting(QWidget):
                     bi = item.get("bar_index", 0)
                 else:
                     (desc, largo, x_off, rot, fh, fv, color, bi) = item
-                pi = next((p for p in self._pieces if p.corte.descripcion == desc
-                           and p.corte.largo == largo), None)
-                corte = pi.corte if pi else Corte(descripcion=desc, largo=largo, cantidad=1)
+                pi = None
+                if key is not None:
+                    pi = next((p for p in self._pieces if cut_key(p.corte) == key), None)
+                if pi is None:   # older layouts: name + length only
+                    pi = next((p for p in self._pieces if p.corte.descripcion == desc
+                               and p.corte.largo == largo), None)
+                if pi:
+                    corte = pi.corte
+                elif isinstance(item, dict) and key is not None:
+                    corte = Corte.from_dict(dict(item, cantidad=1))
+                else:
+                    corte = Corte(descripcion=desc, largo=largo, cantidad=1)
                 poly = self._compute_poly_local(corte, fh, fv)
                 pp = PlacedPiece(corte, bi, x_off, rot, fh, fv, color, poly)
                 bar.append(pp)
@@ -2388,10 +2419,7 @@ class TabNesting(QWidget):
 
         for eng_pp in result.placed:
             np = eng_pp.piece
-            pi = next((p for p in self._pieces if (
-                p.corte.descripcion == np.corte.descripcion
-                and p.corte.largo == np.corte.largo
-            )), None)
+            pi = next((p for p in self._pieces if same_cut(p.corte, np.corte)), None)
             if pi is None:
                 continue
             fh, fv = eng_pp.flipped_h, eng_pp.flipped_v
@@ -2469,17 +2497,16 @@ class TabNesting(QWidget):
         n_bars = len(self._bars)
         n_placed = sum(pi.placed_qty for pi in self._pieces)
         n_total  = sum(pi.total_qty  for pi in self._pieces)
+        # Utilisation by contour area, averaged over the used bars weighted by
+        # their length (same figure as the HTML interface).
         eff = 0.0
-        if self._bars:
-            bar_lengths_as_floats = [
-                [pp.corte.largo for pp in b] for b in self._bars if b
-            ]
-            if bar_lengths_as_floats:
-                bar_len = self._bar_len_for(0)
-                try:
-                    eff = eficiencia_barras(bar_lengths_as_floats, bar_len)
-                except Exception:
-                    pass
+        used = [(i, b) for i, b in enumerate(self._bars) if b]
+        if used:
+            sh = self._section_height_mm()
+            total_len = sum(self._bar_len_for(i) for i, _b in used)
+            if total_len > 0:
+                eff = sum(bar_usage_pct(b, self._bar_len_for(i), sh) * self._bar_len_for(i)
+                          for i, b in used) / total_len
         # Lead the status with the ACTIVE engine's setting: the strategy name in
         # advanced (2D) mode, the FFD/BFD/NFD system in simple (1D) mode — so the
         # label matches whichever control the toolbar is currently showing.
@@ -2493,9 +2520,7 @@ class TabNesting(QWidget):
 
     def _piece_info_for(self, pp: PlacedPiece) -> Optional[PieceInfo]:
         """Find the sidebar PieceInfo that owns a placed piece (by cut identity)."""
-        return next((p for p in self._pieces if p.corte is pp.corte or (
-            p.corte.descripcion == pp.corte.descripcion and p.corte.largo == pp.corte.largo
-        )), None)
+        return next((p for p in self._pieces if same_cut(p.corte, pp.corte)), None)
 
     def _show_piece_context_menu(self, pp: PlacedPiece) -> None:
         from PySide6.QtWidgets import QMenu
@@ -2791,9 +2816,7 @@ class TabNesting(QWidget):
             return
         self._push_undo()
         for bar in self._bars:
-            bar[:] = [pp for pp in bar if not (
-                pp.corte.descripcion == pi.corte.descripcion and pp.corte.largo == pi.corte.largo
-            )]
+            bar[:] = [pp for pp in bar if not same_cut(pp.corte, pi.corte)]
         pi.total_qty = 0
         pi.placed_qty = 0
         pi.corte.cantidad = 0
@@ -2814,8 +2837,7 @@ class TabNesting(QWidget):
             return
         vals = dlg.result_values()
         self._push_undo()
-        old_desc = pi.corte.descripcion
-        old_largo = pi.corte.largo
+        old_key = cut_key(pi.corte)
         # Apply edited values onto the shared Corte (same object the Cuts tab
         # reads through the material context, so the change propagates there).
         pi.corte.descripcion = vals["descripcion"]
@@ -2830,7 +2852,7 @@ class TabNesting(QWidget):
         pi.total_qty = max(0, vals["cantidad"])
         for bar in self._bars:
             for pp in bar:
-                if pp.corte.descripcion == old_desc and pp.corte.largo == old_largo:
+                if pp.corte is pi.corte or cut_key(pp.corte) == old_key:
                     pp.corte = pi.corte
                     pp.poly_local = self._compute_poly_local(pp.corte, pp.flipped_h, pp.flipped_v)
         self._recount_placed()
@@ -2855,17 +2877,19 @@ class TabNesting(QWidget):
         """Highlight all placed pieces matching this PieceInfo in the scene."""
         self._highlighted_pps = [
             pp for bar in self._bars for pp in bar
-            if pp.corte.descripcion == pi.corte.descripcion and pp.corte.largo == pi.corte.largo
+            if same_cut(pp.corte, pi.corte)
         ]
         self._rebuild_scene()
 
-    def _highlight_in_bar(self, bar_idx: int, desc: str, largo: float) -> None:
-        """Highlight placed pieces with matching desc/largo within a specific bar."""
+    def _highlight_in_bar(self, bar_idx: int, desc: str, largo: float, corte=None) -> None:
+        """Highlight the placed pieces of one cut within a specific bar (by the
+        full cut identity when ``corte`` is given, else by desc/largo)."""
         if bar_idx >= len(self._bars):
             return
         self._highlighted_pps = [
             pp for pp in self._bars[bar_idx]
-            if pp.corte.descripcion == desc and pp.corte.largo == largo
+            if (same_cut(pp.corte, corte) if corte is not None
+                else pp.corte.descripcion == desc and pp.corte.largo == largo)
         ]
         self._rebuild_scene()
 
@@ -2918,7 +2942,7 @@ class TabNesting(QWidget):
             if not bar:
                 continue
             bar_len = self._bar_len_for(i)
-            used = max((pp.x_offset + pp.corte.largo for pp in bar), default=0.0)
+            used = max((piece_end(pp) for pp in bar), default=0.0)
             retal = bar_len - used - rem_margin
             if retal >= min_len:
                 mat = (getattr(self._state, "descripcion", "") or "").upper()
@@ -2955,7 +2979,7 @@ class TabNesting(QWidget):
             if i >= len(self._bars):
                 continue
             bar_len = self._bar_len_for(i)
-            used = max((pp.x_offset + pp.corte.largo for pp in self._bars[i]), default=0.0)
+            used = max((piece_end(pp) for pp in self._bars[i]), default=0.0)
             retal_len = bar_len - used - rem_margin
             if retal_len >= min_len:
                 stock_db.add_retal(prof, mat, retal_len, quality=qual)
@@ -3324,8 +3348,7 @@ class TabNesting(QWidget):
         for pi in self._pieces:
             pi.placed_qty = sum(
                 1 for bar in self._bars for pp in bar
-                if pp.corte.descripcion == pi.corte.descripcion
-                and pp.corte.largo == pi.corte.largo
+                if same_cut(pp.corte, pi.corte)
             )
 
     # ── Toolbar param changes ─────────────────────────────────────────────────
@@ -3449,12 +3472,12 @@ class TabNesting(QWidget):
         self.ui.info_bar.setToolTip(t("save_nesting"))
 
     def _bar_used_length(self, bar_idx: int) -> float:
-        """Approximate rightmost extent of placed pieces on bar bar_idx (mm)."""
+        """Rightmost extent of placed pieces on bar bar_idx (mm), real contour."""
         pieces = self._bars[bar_idx] if bar_idx < len(self._bars) else []
         if not pieces:
             return 0.0
         margin = self._state.margen_tubo
-        return max(pp.x_offset + pp.corte.largo for pp in pieces) + margin
+        return max(piece_end(pp) for pp in pieces) + margin
 
     def _deduct_stock_bars(self) -> None:
         """Reconcile stock bar quantities against how many nesting bars are live."""

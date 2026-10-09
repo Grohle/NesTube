@@ -15,19 +15,13 @@ from PySide6.QtCore import QObject, QPointF, Slot
 from PySide6.QtGui import QTransform
 
 from nestube.context_sync import ensure_material_contexts
-from nestube.ui_qt.nesting_scene import BAR_GAP_MM, PlacedPieceItem
+from nestube.ui_qt.nesting_scene import BAR_GAP_MM, PlacedPieceItem, bar_usage_pct, piece_end
 
 _MAIN_TABS = {"jobs": 0, "cuts": 1, "nesting": 2, "costs": 3, "profiles": 4, "stock": 5}
 
 
 def _r(v: float, d: int = 2) -> float:
     return round(float(v), d)
-
-
-def _shoelace(poly) -> float:
-    n = len(poly)
-    return 0.5 * sum(poly[i][0] * poly[(i + 1) % n][1] - poly[(i + 1) % n][0] * poly[i][1]
-                     for i in range(n)) if n >= 3 else 0.0
 
 
 class _AutoNestRelay(QObject):
@@ -57,7 +51,7 @@ class _AutoNestRelay(QObject):
     @Slot(object, float)
     def live(self, result, bar_len: float) -> None:
         self._live(result, bar_len)
-        self.api.b.emit("nest:state", self.api.state())
+        self.api.b.emit("nest:state", self.api.state(light=True))
 
     @Slot(object, float)
     def finished(self, result, bar_len: float) -> None:
@@ -99,8 +93,12 @@ class NestingAPI:
         tab._on_nest_finished = self._relay.finished
 
     # ── state snapshot ──────────────────────────────────────────────────────
-    def state(self) -> Dict[str, Any]:
+    def state(self, light: bool = False) -> Dict[str, Any]:
+        """Snapshot for the page. ``light`` reuses the last unsaved-changes flag
+        (pointer moves: the full job comparison is too heavy to run per move)."""
         tab = self.tab
+        if not light or not hasattr(self, "_app_dirty"):
+            self._app_dirty = bool(self.app._is_dirty())
         ensure_material_contexts(tab._state)
         ctx = tab._state.material_contexts[tab._state.active_material_index]
         sh = tab._section_height_mm()
@@ -112,8 +110,6 @@ class NestingAPI:
         bars = []
         for bi, bar in enumerate(tab._bars):
             items = []
-            area = 0.0      # real material of the pieces (contour area)
-            end = 0.0       # right end of the last contour
             for k, pp in enumerate(bar):
                 pi = tab._piece_info_for(pp)
                 poly = pp.poly_local or tab._compute_poly_local(pp.corte, pp.flipped_h, pp.flipped_v)
@@ -125,15 +121,10 @@ class NestingAPI:
                     "poly": [[_r(x, 2), _r(y, 2)] for x, y in poly],
                     "sel": id(pp) in sel, "hl": id(pp) in hl,
                 })
-                area += abs(_shoelace(poly))
-                end = max(end, pp.x_offset + max((x for x, _y in poly), default=pp.corte.largo))
             L = tab._bar_len_for(bi)
-            # Utilisation by contour area, not nominal lengths: mitered pieces
-            # nest into each other and share material, so the sum of their
-            # lengths can exceed the bar (it showed e.g. 110 %).
-            eff = area / (L * sh) * 100 if L and sh else 0.0
+            end = max((piece_end(pp) for pp in bar), default=0.0)
             bars.append({"i": bi, "len": L, "y": bi * pitch, "pieces": items,
-                         "eff": _r(min(eff, 100.0), 1),
+                         "eff": _r(bar_usage_pct(bar, L, sh), 1),
                          "rem": _r(max(0.0, L - end), 0),
                          "stock": (tab._bar_stock_ids[bi] if bi < len(tab._bar_stock_ids) else None)})
 
@@ -178,7 +169,7 @@ class NestingAPI:
             "sel_count": len(sel), "left_pan": bool(tab._view._left_pan_enabled),
             "auto_nesting": bool(tab._auto_nesting), "pct": getattr(tab, "_auto_nest_pct", 0),
             "undo": len(tab._undo_stack), "redo": len(tab._redo_stack),
-            "dirty": bool(tab._nesting_dirty or self.app._is_dirty()),
+            "dirty": bool(tab._nesting_dirty or self._app_dirty),
             "nest_dirty": bool(tab._nesting_dirty),
             "params": self._params(ctx),
             "subtabs": self._subtabs(),
@@ -228,7 +219,7 @@ class NestingAPI:
     def move(self, x: float, y: float, zoom: float = 0) -> Dict[str, Any]:
         self._set_zoom(zoom)
         self.tab._on_view_moved(self._pos(x, y))
-        return self.state()
+        return self.state(light=True)
 
     def release(self, x: float, y: float, ctrl: bool = False, zoom: float = 0) -> Dict[str, Any]:
         self._set_zoom(zoom)
@@ -345,7 +336,8 @@ class NestingAPI:
             return self.state()
         pi = tab._pieces[i]
         tab._push_undo()
-        old_desc, old_largo = pi.corte.descripcion, pi.corte.largo
+        from nestube.ui_qt.tab_nesting import cut_key
+        old_key = cut_key(pi.corte)
         c = pi.corte
         c.descripcion = str(values.get("descripcion", c.descripcion))
         c.largo = float(values.get("largo", c.largo))
@@ -364,7 +356,7 @@ class NestingAPI:
             pi.color = values["color"]
         for bar in tab._bars:
             for pp in bar:
-                if pp.corte.descripcion == old_desc and pp.corte.largo == old_largo:
+                if pp.corte is c or cut_key(pp.corte) == old_key:
                     pp.corte = c
                     if values.get("color"):
                         pp.color = values["color"]
@@ -387,7 +379,7 @@ class NestingAPI:
         tab = self.tab
         if 0 <= cut < len(tab._pieces):
             c = tab._pieces[cut].corte
-            tab._highlight_in_bar(int(bar), c.descripcion, c.largo)
+            tab._highlight_in_bar(int(bar), c.descripcion, c.largo, corte=c)
         return self.state()
 
     # ── auto-nest ───────────────────────────────────────────────────────────

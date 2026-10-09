@@ -221,8 +221,13 @@
     const meta = {};
     $$("[data-meta]", root).forEach((i) => { if (i.value.trim()) meta[i.dataset.meta] = i.value.trim(); });
     const sides = st.sides.filter((s) => s.manual).map((s) => ({ name: s.name, length: parseFloat(s.len) || 0, thickness: parseFloat(s.t) || 0 }));
-    window.NT.call("data.save_drawing", { shapes: toQtShapes(), meta, sides }).then((r) => {
-      if (r && r.saved === false) return;
+    // The engine asks for the name/fields in its profile-save dialog, which
+    // the page draws (ask-native.js); cancelling it keeps the drawing open.
+    window.NTB.call("data.save_drawing", { shapes: toQtShapes(), meta, sides }).then((r) => {
+      if (!r || r.cancelled) return;
+      if (!r.ok) { window.NT.alert({ kind: "critical", title: "Error", msg: r.error }); return; }
+      (r.alerts || []).forEach((a) => a.kind !== "question" && window.NT.alert({ kind: a.kind, title: a.title, msg: a.msg }));
+      window.NT.toast("Perfil guardado en la base de datos");
       closeCad();
       if (window.NT_VIEWS) window.NT_VIEWS.reload();
     });
