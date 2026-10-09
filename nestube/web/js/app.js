@@ -6,7 +6,21 @@
    ========================================================================== */
 (function () {
   "use strict";
-  const { $, $$, ICON, toast, openMenu, openMenuAt, openModal, closeModal, confirmDialog, showView, setTheme, currentTheme } = window.NT;
+  const { $, $$, ICON, toast, openMenu, openMenuAt, openModal, closeModal, confirmDialog, setTheme, currentTheme } = window.NT;
+  const alertBox = window.NT.alert;
+
+  // Leaving Nesting with unsaved changes asks first (TabNesting via
+  // MainWindow._on_main_tab_changed: Save / Discard / Cancel).
+  function showView(name) {
+    if (document.body.dataset.view === "nesting" && name !== "nesting" && N.isDirty()) {
+      alertBox({ kind: "question", title: "Cambios sin guardar en el Nesting", msg: "El nesting tiene cambios sin guardar.\n\n¿Guardar antes de salir de esta pestaña?",
+        buttons: [{ label: "Cancelar" }, { label: "Descartar", danger: true, action: () => { N.discardDirty(); window.NT.showView(name); } },
+          { label: "Guardar", primary: true, action: () => { N.save(); window.NT.showView(name); } }] });
+      return;
+    }
+    window.NT.showView(name);
+  }
+  window.NT.go = showView;
   const N = window.NestCanvas;
   const S = N.state;
 
@@ -15,7 +29,7 @@
   function dialog(id) {
     const d = DIALOGS[id];
     if (!d) { toast("Pendiente: " + id); return; }
-    openModal(d.title, d.body, d.foot || `<button class="btn outline" data-close>Cancelar</button><button class="btn primary" data-close>${d.ok || "Aceptar"}</button>`, d.wide);
+    openModal(d.title, d.body, d.foot || `<button class="btn outline" data-close>Cancelar</button><button class="btn primary" data-close${d.done ? ` data-toast="${d.done}"` : ""}>${d.ok || "Aceptar"}</button>`, d.wide);
     if (d.init) d.init();
   }
   window.NT.dialog = dialog;
@@ -33,7 +47,10 @@
       { label: "Copias de seguridad…", action: () => dialog("backups") },
       { label: "Gestión de base de datos…", action: () => dialog("db") },
       "-",
-      { label: "Salir", action: () => confirmDialog({ title: "Salir", text: "Hay cambios sin guardar en el anidado. ¿Salir de todos modos?", okLabel: "Salir", ok: () => toast("La app se cerraría aquí") }) },
+      { label: "Salir", action: () => (N.isDirty()
+        ? alertBox({ kind: "question", title: "Cambios sin guardar en el Nesting", msg: "El nesting tiene cambios sin guardar.\n\n¿Guardar antes de salir?",
+            buttons: [{ label: "Cancelar" }, { label: "Descartar", danger: true, action: () => toast("La app se cerraría aquí") }, { label: "Guardar", primary: true, action: () => { N.save(); toast("La app se cerraría aquí"); } }] })
+        : toast("La app se cerraría aquí")) },
     ] },
     { label: "Vista", sub: [
       { label: "Tema", sub: [
@@ -72,7 +89,7 @@
       { label: "Disposición del anidado…", action: () => dialog("nesting-layout") },
       { label: "Asignación de nombres…", action: () => dialog("naming") },
       "-",
-      { label: "Restablecer ajustes…", danger: true, action: () => confirmDialog({ title: "Restablecer ajustes", text: "Se restaurarán los valores por defecto de la aplicación. Tus trabajos, perfiles y stock no se tocan.", okLabel: "Restablecer", ok: () => toast("Ajustes restablecidos") }) },
+      { label: "Restablecer ajustes…", danger: true, action: () => confirmDialog({ title: "Restablecer ajustes", text: "¿Restablecer todos los ajustes a valores predeterminados (inglés, EUR, métrico)?", ok: () => toast("Ajustes restablecidos") }) },
     ] },
     { label: "Acerca de", sub: [
       { label: "Acerca de NesTube…", action: () => dialog("about") },
@@ -80,17 +97,19 @@
     { label: "Ayuda", sub: [
       { label: "Tutorial interactivo", action: () => toast("El tutorial guiado se lanzará aquí") },
       { label: "GitHub / Issues", action: () => toast("github.com/Grohle/nestube/issues") },
+      "-",
+      { label: "Catálogo de ventanas y avisos (maqueta)", action: showCatalog },
     ] },
   ];
 
   const EXPORT_MENU = () => [
     { header: "Anidado" },
-    { label: "Exportar PDF", action: () => dialog("nest-selector") },
-    { label: "Imprimir…", action: () => dialog("nest-selector") },
+    { label: "Exportar PDF", action: () => exportGuard(() => dialog("nest-selector")) },
+    { label: "Imprimir…", action: () => exportGuard(() => dialog("nest-selector")) },
     "-",
-    { label: "Exportar DXF", action: () => toast("DXF del anidado exportado") },
+    { label: "Exportar DXF", action: () => exportGuard(() => toast("Diagrama de anidado guardado en: C:\\NesTube\\exports\\PED-2026-001.dxf")) },
     "-",
-    { label: "Exportar anidado (PNG)", action: () => toast("PNG del anidado exportado") },
+    { label: "Exportar anidado (PNG)", action: () => exportGuard(() => toast("Diagrama de anidado guardado en: C:\\NesTube\\exports\\PED-2026-001.png")) },
   ];
 
   function pieceMenu(piece) {
@@ -139,6 +158,37 @@
       closeModal(); N.setParam("cuts", S.cuts); N.clearSelection();
     };
   }
+
+  function exportGuard(fn) {
+    if (!S.bars.some((b) => b.pieces.length)) return alertBox({ title: "Exportar", msg: "Sin datos de anidado. Ejecuta el anidado automático o coloca piezas primero." });
+    fn();
+  }
+
+  // ── catalog of every window and alert (review aid for the mockup) ───────
+  const KIND_LBL = { information: "Información", warning: "Advertencia", critical: "Error", question: "Pregunta" };
+  const KIND_ICON = { information: "info", warning: "warning", critical: "error", question: "question" };
+  function showCatalog(tab = "windows", filter = "") {
+    const dlg = window.NT_DIALOGS || {}, alerts = window.NT_ALERTS || [];
+    const f = filter.toLowerCase();
+    const rows = tab === "windows"
+      ? Object.entries(dlg).filter(([, d]) => !f || d.title.toLowerCase().includes(f)).map(([id, d]) =>
+        `<div class="catalog-row" data-cat-dialog="${id}"><span class="k" style="color:var(--text-sec)">${ICON("layers", "sm")}</span><div style="min-width:0"><div class="t">${d.title}</div></div><span class="src mono">${id}</span></div>`).join("")
+      : alerts.map((a, i) => [a, i]).filter(([a]) => !f || (a.title + a.msg + a.src).toLowerCase().includes(f)).map(([a, i]) =>
+        `<div class="catalog-row alert-${a.kind}" data-cat-alert="${i}"><span class="k alert-icon" style="width:22px;height:22px">${ICON(KIND_ICON[a.kind], "sm")}</span><div style="min-width:0"><div class="t">${a.title}</div><div class="m">${a.msg.replace(/</g, "&lt;")}</div></div><span class="src">${a.src}</span></div>`).join("");
+    const counts = alerts.reduce((m, a) => (m[a.kind] = (m[a.kind] || 0) + 1, m), {});
+    openModal("Catálogo de ventanas y avisos", `
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <div class="segmented" style="width:300px;max-width:100%"><button aria-pressed="${tab === "windows"}" data-cat-tab="windows">Ventanas (${Object.keys(dlg).length})</button><button aria-pressed="${tab === "alerts"}" data-cat-tab="alerts">Avisos (${alerts.length})</button></div>
+        <div class="search" style="flex:1;min-width:160px">${ICON("search")}<input id="cat-filter" placeholder="Filtrar…" value="${filter}"></div>
+      </div>
+      ${tab === "alerts" ? `<div style="display:flex;gap:6px;flex-wrap:wrap">${Object.entries(counts).map(([k, n]) => `<span class="chip">${KIND_LBL[k]} · ${n}</span>`).join("")}</div>` : ""}
+      <div style="display:grid;gap:1px;max-height:52vh;overflow:auto">${rows || '<div class="empty-hint">Sin resultados</div>'}</div>`, null, true);
+    $$("[data-cat-tab]").forEach((b) => b.addEventListener("click", () => showCatalog(b.dataset.catTab, $("#cat-filter").value)));
+    $("#cat-filter").addEventListener("input", (e) => { const v = e.target.value, pos = e.target.selectionStart; showCatalog(tab, v); const i = $("#cat-filter"); i.focus(); i.setSelectionRange(pos, pos); });
+    $$("[data-cat-dialog]").forEach((r) => r.addEventListener("click", () => dialog(r.dataset.catDialog)));
+    $$("[data-cat-alert]").forEach((r) => r.addEventListener("click", () => { const a = alerts[+r.dataset.catAlert]; alertBox({ kind: a.kind, title: a.title, msg: a.msg }); }));
+  }
+  window.NT.showCatalog = showCatalog;
 
   // ── shortcuts (identical keys to the Qt app) ────────────────────────────
   const SHORTCUTS = [
@@ -246,6 +296,7 @@
 
   function renderRemnants() {
     const list = $("#rem-list"); list.replaceChildren();
+    if (S.remnantsBlocked) { list.innerHTML = `<div class="empty-hint" style="padding:12px;color:var(--warning)">Solo se pueden generar retales si se ha usado stock.</div>`; $("#rem-apply").disabled = true; return; }
     if (!S.remnants.length) { list.innerHTML = `<div class="empty-hint" style="padding:12px">Pulsa ↻ para calcular los retales ≥ ${S.remMin} mm</div>`; $("#rem-apply").disabled = true; return; }
     S.remnants.forEach((r) => {
       const n = S.bars.findIndex((b) => b.id === r.bar) + 1;
@@ -320,8 +371,12 @@
     "open-remnants": () => selectPTab("remnants"),
     "show-all-bars": () => N.showAll(),
     "rem-refresh": () => N.refreshRemnants(), "rem-clear": () => N.clearRemnants(),
-    "rem-apply": () => toast(`${S.remnants.length} retales añadidos al stock`),
-    "rem-delete-all": () => confirmDialog({ title: "Borrar todos los retales", text: "Se eliminarán del stock todos los retales de este material.", ok: () => { N.clearRemnants(); toast("Retales eliminados"); } }),
+    "rem-apply": () => {
+      if (!S.useStock) return alertBox({ title: "Generar Retales", msg: "Solo se pueden generar retales si se ha usado stock." });
+      if (!S.remnants.length) return alertBox({ title: "Generar Retales", msg: "No hay retales que cumplan el largo minimo." });
+      toast("Retales guardados en stock.");
+    },
+    "rem-delete-all": () => confirmDialog({ title: "Borrar todos los retales", text: "¿Borrar todos los retales de este material del stock?", ok: () => { const n = S.remnants.length; N.clearRemnants(); toast(`${n} retales borrados del stock.`); } }),
     "change-values": () => S.sel[0] && changeValues(S.sel[0].cut),
     "edit-drawing": () => dialog("profile-creator"),
     "sel-material": () => dialog("material-search"),
@@ -331,6 +386,9 @@
     "fit": () => N.fit(),
     "zoom-in": () => N.zoomBy(1), "zoom-out": () => N.zoomBy(-1),
     "shortcuts": showShortcuts,
+    "catalog": () => showCatalog(),
+    "backup-restore": () => confirmDialog({ title: "Copias de seguridad de la base de datos", text: "¿Restaurar esta copia? La app deberá reiniciarse.", danger: false,
+      ok: () => alertBox({ title: "Copias de seguridad de la base de datos", msg: "Copia restaurada. Reinicia NesTube." }) }),
   };
   window.NT.ACTIONS = ACTIONS;
   document.addEventListener("click", (e) => {
@@ -347,6 +405,7 @@
   // ── controls ────────────────────────────────────────────────────────────
   function bindControls() {
     $$(".workspace-tabs [data-view]").forEach((b) => b.addEventListener("click", () => showView(b.dataset.view)));
+    $("#sw-stock").addEventListener("change", () => { if (S.remnantsBlocked && S.useStock) { S.remnantsBlocked = false; renderRemnants(); } });
     $$("[data-ptab]").forEach((b) => b.addEventListener("click", () => selectPTab(b.dataset.ptab)));
     $$("#piece-filter [data-filter]").forEach((b) => b.addEventListener("click", () => {
       $$("#piece-filter button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); S.filter = b.dataset.filter; renderPieces(); }));

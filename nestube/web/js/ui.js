@@ -76,15 +76,13 @@
     $("#modal-title").textContent = title;
     $("#modal-body").innerHTML = bodyHTML;
     $("#modal-foot").innerHTML = footHTML || `<button class="btn outline" data-close>Cerrar</button>`;
-    $("#modal").style.width = wide ? "min(760px,100%)" : "";
+    $("#modal").style.width = wide === "xl" ? "min(1080px,100%)" : wide ? "min(760px,100%)" : "";
     $("#modal-backdrop").hidden = false;
     const f = $("#modal-body input, #modal-body select, #modal-foot .btn.primary"); if (f) f.focus();
   }
-  function closeModal() { $("#modal-backdrop").hidden = true; }
-  function confirmDialog({ title, text, ok, okLabel = "Eliminar", danger = true }) {
-    openModal(title, `<p style="margin:0;color:var(--text-sec)">${text}</p>`,
-      `<button class="btn outline" data-close>Cancelar</button><button class="btn ${danger ? "danger solid" : "primary"}" id="confirm-ok">${okLabel}</button>`);
-    $("#confirm-ok").onclick = () => { closeModal(); ok(); };
+  function closeModal() { $("#modal-backdrop").hidden = true; $("#modal").classList.remove("modal-alert"); }
+  function confirmDialog({ title, text, ok, okLabel = "Sí", cancelLabel = "No", danger = true }) {
+    alertBox({ kind: "question", title, msg: text, buttons: [{ label: cancelLabel }, { label: okLabel, primary: true, danger, action: ok }] });
   }
 
   // ── workspace tabs ──────────────────────────────────────────────────────
@@ -108,6 +106,23 @@
     $("#theme-btn").innerHTML = ICON(t === "dark" ? "sun" : "moon");
   }
 
-  window.NT = { $, $$, ICON, toast, openMenu, openMenuAt, closeMenus, openModal, closeModal, confirmDialog,
+  // ── alerts (QMessageBox equivalents) ────────────────────────────────────
+  // kind: information | warning | critical | question.
+  // buttons: [{ label, primary, danger, action }] — default depends on kind.
+  const ALERT_ICON = { information: "info", warning: "warning", critical: "error", question: "question" };
+  function alertBox({ kind = "information", title, msg, buttons }) {
+    const esc = (t) => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+    const body = `<div class="alert alert-${kind}"><span class="alert-icon"><svg class="icon lg"><use href="#i-${ALERT_ICON[kind] || "info"}"/></svg></span>
+      <div class="alert-text">${esc(msg).replace(/\n/g, "<br>")}</div></div>`;
+    const btns = buttons || (kind === "question"
+      ? [{ label: "No" }, { label: "Sí", primary: true }]
+      : [{ label: "Aceptar", primary: true }]);
+    openModal(title, body, btns.map((b, i) => `<button class="btn ${b.primary ? (b.danger ? "danger solid" : "primary") : b.danger ? "danger" : "outline"}" data-alert-btn="${i}">${b.label}</button>`).join(""));
+    $("#modal").classList.add("modal-alert");
+    $$("[data-alert-btn]").forEach((el) => el.addEventListener("click", () => { closeModal(); const b = btns[+el.dataset.alertBtn]; if (b.action) b.action(); }));
+    const p = $("#modal-foot .btn.primary, #modal-foot .btn.solid"); if (p) p.focus();
+  }
+
+  window.NT = { $, $$, ICON, toast, alert: alertBox, openMenu, openMenuAt, closeMenus, openModal, closeModal, confirmDialog,
     showView, setTheme, currentTheme };
 })();

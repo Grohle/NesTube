@@ -1,1 +1,257 @@
-(function(){})();
+/* ==========================================================================
+   NesTube web UI — Jobs, Cuts, Costs, Profiles and Stock views (MOCKUP)
+   Example data only. In the functional stage each render function is fed
+   from the Python bridge (database.py, stock_db.py, profile_catalog.py,
+   logic.py) instead of the constants below.
+   ========================================================================== */
+(function () {
+  "use strict";
+  const { $, $$, ICON, toast, confirmDialog, openMenu } = window.NT;
+  const showView = (v) => (window.NT.go || window.NT.showView)(v);
+  const N = () => window.NestCanvas;
+  const fmt = (v, d = 2) => Number(v).toLocaleString("es-ES", { minimumFractionDigits: d, maximumFractionDigits: d });
+
+  // ── example data ────────────────────────────────────────────────────────
+  const JOBS = [
+    { name: "JOB-260629-0001", client: "Cliente Demo SL", date: "29/06/2026 11:48", order: "PED-2026-001", offer: "OFR-2026-042", desc: "Estructura nave A", material: "IPE 200 · S235", bars: 7, eff: 82.9, total: 800.07 },
+    { name: "JOB-260702-0002", client: "Talleres Arrieta", date: "02/07/2026 09:15", order: "PED-2026-007", offer: "OFR-2026-051", desc: "Pórtico de carga", material: "HEA 140 · S275", bars: 3, eff: 76.4, total: 1214.30 },
+    { name: "JOB-260715-0003", client: "Carpintería Metálica Sur", date: "15/07/2026 16:02", order: "PED-2026-012", offer: "", desc: "Barandilla inox", material: "Tubo □ 40×40×2 · Inox", bars: 5, eff: 88.1, total: 642.90 },
+    { name: "JOB-260801-0004", client: "Cliente Demo SL", date: "01/08/2026 08:40", order: "PED-2026-019", offer: "OFR-2026-060", desc: "Correas cubierta", material: "Correa C 125×50×2 · Galv.", bars: 12, eff: 91.3, total: 1570.00 },
+  ];
+  let jobSel = 0;
+
+  const PAGES = ["IPE 200 · S235", "HEA 140 · S275", "Tubo □ 40×40×2 · Inox"];
+
+  const COSTS = [
+    ["Viga principal", 3500, 4, 78.40, 2.10, 76.64, 1.50, 78.14, 21.90, 312.54],
+    ["Correa", 1200, 6, 26.88, 0.72, 26.28, 1.50, 27.78, 21.90, 166.65],
+    ["Montante", 800, 8, 17.92, 0.48, 17.52, 1.50, 19.02, 21.90, 152.13],
+    ["Diagonal", 2800, 2, 62.72, 1.68, 61.31, 2.55, 63.86, 21.90, 127.72],
+    ["Placa base", 400, 4, 8.96, 0.24, 8.76, 1.50, 10.26, 21.90, 41.03],
+  ];
+
+  // [name, family, material, h, b, tw, tf, section cm², kg/m]
+  const PROFILES = [
+    ["Correa C 125x50x2", "C", "Acero Galvanizado", 125, 50, 2, 2, 4.5, 3.65],
+    ["Correa Z 150x50x2", "Z", "Acero Galvanizado", 150, 50, 2, 2, 5, 4.05],
+    ["HEA 140", "H", "Acero al Carbono", 133, 140, 5.5, 8.5, 31.4, 24.7],
+    ["IPE 100", "I", "Acero al Carbono", 100, 55, 4.1, 5.7, 10.3, 8.1],
+    ["IPE 200", "I", "Acero al Carbono", 200, 100, 5.6, 8.5, 28.5, 22.4],
+    ["UPN 100", "U", "Acero al Carbono", 100, 50, 6, 8.5, 13.5, 10.6],
+    ["L 50x50x5", "L", "Acero al Carbono", 50, 50, 5, 5, 4.8, 3.77],
+    ["L Aluminio 30x30x3", "L", "Aluminio", 30, 30, 3, 3, 1.71, 0.46],
+    ["Macizo Inox Ø20", "O", "Inoxidable", 20, "", "", "", 3.14, 2.49],
+    ["Perfil Ranurado 20x20", "S", "Aluminio", 20, 20, "", "", 1.66, 0.45],
+    ["Perfil Ranurado 40x40", "S", "Aluminio", 40, 40, "", "", 5.37, 1.45],
+    ["Perfil Ranurado 40x80", "S", "Aluminio", 80, 40, "", "", 9.63, 2.6],
+  ];
+  const FAMILIES = [["all", "Todos"], ["I", "IPE / HEA"], ["U", "UPN / C / Z"], ["L", "Angulares"], ["T", "Tubos"], ["O", "Macizos"], ["S", "Ranurados"]];
+  const famOf = (f) => (f === "H" ? "I" : f === "C" || f === "Z" ? "U" : f);
+  let profFamily = "all", profView = "list", profSel = 4;
+
+  const STOCK = [
+    { prof: "IPE 200", q: "S235-000001-00", len: 6000, qty: 1, ok: true, retal: false, job: "", used: "" },
+    { prof: "IPE 200", q: "S235-000002-00", len: 6000, qty: 1, ok: true, retal: false, job: "", used: "" },
+    { prof: "IPE 200", q: "S235-000003-00", len: 6000, qty: 1, ok: true, retal: false, job: "", used: "" },
+    { prof: "HEA 140", q: "S275-000004-00", len: 12000, qty: 2, ok: true, retal: false, job: "", used: "" },
+    { prof: "IPE 200", q: "S235-000001-R1", len: 1182, qty: 1, ok: true, retal: true, job: "JOB-260629-0001", used: "" },
+    { prof: "IPE 200", q: "S235-000007-00", len: 6000, qty: 1, ok: false, retal: false, job: "", used: "JOB-260629-0001" },
+  ];
+  let stockSel = 4;
+
+  // ── section drawings (profile thumbnails) ───────────────────────────────
+  function sectionSVG(fam, size = 100) {
+    const s = `fill="var(--bg-mid)" stroke="var(--text-sec)" stroke-width="2" stroke-linejoin="round"`;
+    const shapes = {
+      I: `<path d="M22 14h56v9H54v54h24v9H22v-9h24V23H22z" ${s}/>`,
+      H: `<path d="M14 18h72v10H54v44h32v10H14V72h32V28H14z" ${s}/>`,
+      U: `<path d="M30 14h44v8H40v56h34v8H30z" ${s}/>`,
+      C: `<path d="M34 14h34v10h-4v-4H40v60h24v-4h4v10H34z" ${s}/>`,
+      Z: `<path d="M44 14h26v6H50v60h-24v-6h18z" ${s}/>`,
+      L: `<path d="M28 14h9v63h45v9H28z" ${s}/>`,
+      O: `<circle cx="50" cy="50" r="32" ${s}/>`,
+      T: `<path d="M18 18h64v64H18zM24 24v52h52V24z" fill-rule="evenodd" ${s}/>`,
+      S: `<path d="M20 20h60v60H20z" ${s}/><circle cx="50" cy="50" r="13" fill="var(--bg-panel)" stroke="var(--text-sec)" stroke-width="2"/>`,
+    };
+    return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" aria-hidden="true">${shapes[fam] || shapes.T}</svg>`;
+  }
+
+  // ── material pages (Cuts / Costs left panel) ────────────────────────────
+  function renderPages() {
+    $$("[data-pages]").forEach((list) => {
+      const items = PAGES.slice(); if (list.dataset.total) items.push("Total");
+      list.innerHTML = items.map((n, i) => `<div class="row page-row${i === 0 ? " active" : ""}" tabindex="0">${ICON("check", "sm check")}<div class="row-main"><span class="row-title">${n === "Total" ? "<b>Total</b> · todos los materiales" : n}</span></div></div>`).join("");
+      $$(".page-row", list).forEach((r) => {
+        r.addEventListener("click", () => { $$(".page-row", list).forEach((x) => x.classList.toggle("active", x === r)); });
+        r.addEventListener("contextmenu", (e) => { e.preventDefault(); openMenu([{ label: "Renombrar pestaña…", action: () => toast("Renombrar sub-pestaña") }, "-", { label: "Eliminar pestaña", danger: true, action: () => toast("Sub-pestaña eliminada") }], e.clientX, e.clientY); });
+      });
+    });
+  }
+
+  // ── Jobs ────────────────────────────────────────────────────────────────
+  function renderJobs() {
+    const q = ($("#jobs-search").value || "").toLowerCase(); const f = $("#jobs-field").value;
+    const keyOf = { name: "name", client: "client", material: "material", order: "order", offer: "offer" }[f];
+    const vis = JOBS.map((j, i) => [j, i]).filter(([j]) => !q || String(j[keyOf]).toLowerCase().includes(q));
+    $("#jobs-count").textContent = vis.length;
+    $("#jobs-list").innerHTML = vis.length ? vis.map(([j, i]) => `<div class="row${i === jobSel ? " active" : ""}" data-job="${i}" tabindex="0">
+        ${ICON("folder", "sm")}<div class="row-main"><span class="row-title mono">${j.name}</span><span class="row-sub" style="font-family:var(--font-ui)">${j.client} · ${j.date}</span></div></div>`).join("")
+      : `<div class="empty-hint">No hay jobs que coincidan</div>`;
+    $$("#jobs-list [data-job]").forEach((r) => r.addEventListener("click", () => { jobSel = +r.dataset.job; renderJobs(); }));
+    const j = JOBS[jobSel];
+    $("#job-title").textContent = j.name; $("#job-date").lastChild.textContent = j.date;
+    $("#job-name").value = j.name; $("#job-desc").value = j.desc; $("#job-client").value = j.client; $("#job-order").value = j.order; $("#job-offer").value = j.offer;
+    $("#job-kpis").innerHTML = [["Material", j.material, ""], ["Barras", j.bars, "de 6000 mm"], ["Aprovechamiento", j.eff.toFixed(1) + " %", ""], ["Total pedido", fmt(j.total) + " €", "IVA no incluido"]]
+      .map(([k, v, d]) => `<div class="kpi"><span class="k">${k}</span><span class="v" style="${k === "Material" ? "font-family:var(--font-ui);font-size:var(--fs-xl)" : ""}">${v}</span><span class="d">${d}</span></div>`).join("");
+    const pcs = jobSel === 0 ? N().state.cuts : N().state.cuts.slice(0, 3);
+    $("#job-pieces tbody").innerHTML = pcs.map((c, i) => `<tr><td class="idx">${i + 1}</td><td>${c.name}</td><td>${j.material}</td><td class="num">${c.len}</td><td class="num">${c.qty}</td></tr>`).join("");
+    $("#job-trace").innerHTML = jobSel === 0
+      ? `<div>• IPE 200 · S235-000007-00 × 1 barra(s)</div><div>• Retal IPE 200 · S235-000001-R1 — 1182 mm</div>`
+      : `<span style="color:var(--text-dim)">Este trabajo no usó barras del stock.</span>`;
+  }
+
+  // ── Cuts ────────────────────────────────────────────────────────────────
+  function shapeThumb(c) {
+    const H = 18, W = 44, d = c.aL ? 10 : 0, e = c.aR ? 10 : 0;
+    return `<svg class="shape-thumb" viewBox="0 0 ${W} ${H}"><polygon points="0,0 ${W - e},0 ${W},${H} ${d},${H}" fill="${c.color}" stroke="var(--bar-stroke)" stroke-width="1"/></svg>`;
+  }
+  function renderCuts() {
+    const S = N().state;
+    $("#cuts-table tbody").innerHTML = S.cuts.map((c, i) => `<tr data-cut="${c.id}">
+      <td class="idx">${i + 1}</td>
+      <td><input class="cell-input" value="${c.name}" aria-label="Descripción" data-k="name"></td>
+      <td class="num" style="width:96px"><input class="cell-input num mono" value="${c.len}" aria-label="Longitud" data-k="len"></td>
+      <td class="num" style="width:70px"><input class="cell-input num mono" value="${c.qty}" aria-label="Cantidad" data-k="qty"></td>
+      <td><span class="angle"><input type="checkbox" ${c.aL ? "checked" : ""} aria-label="Inglete 1" data-k="aLon"><button class="btn icon-only" style="width:22px;height:22px" title="Dirección del inglete">${ICON("arrow-up", "sm")}</button><input class="cell-input num mono" value="${c.aL || 45}" aria-label="Grados inglete 1" data-k="aL"><span style="color:var(--text-dim)">°</span></span></td>
+      <td><span class="angle"><input type="checkbox" ${c.aR ? "checked" : ""} aria-label="Inglete 2" data-k="aRon"><button class="btn icon-only" style="width:22px;height:22px" title="Dirección del inglete">${ICON("arrow-down", "sm")}</button><input class="cell-input num mono" value="${c.aR || 45}" aria-label="Grados inglete 2" data-k="aR"><span style="color:var(--text-dim)">°</span></span></td>
+      <td><button class="btn" style="padding:0 4px" title="Editar dibujo de la pieza / color" data-dialog="cut-piece">${shapeThumb(c)}</button></td>
+      <td style="width:36px"><button class="btn icon-only danger" title="Eliminar corte" data-del="${c.id}">${ICON("x", "sm")}</button></td></tr>`).join("");
+    $$("#cuts-table [data-del]").forEach((b) => b.addEventListener("click", () => {
+      const c = N().cutById(+b.dataset.del);
+      confirmDialog({ title: "Eliminar corte", text: `¿Eliminar «${c.name}»?`, ok: () => { S.cuts = S.cuts.filter((x) => x !== c); N().state.bars.forEach((bb) => { bb.pieces = bb.pieces.filter((p) => p.cut !== c); }); renderCuts(); document.dispatchEvent(new CustomEvent("nest:changed")); } });
+    }));
+    $$("#cuts-table input").forEach((inp) => inp.addEventListener("change", () => {
+      const c = N().cutById(+inp.closest("tr").dataset.cut), k = inp.dataset.k;
+      if (k === "name") c.name = inp.value;
+      else if (k === "len" || k === "qty") c[k] = Math.max(k === "qty" ? 1 : 1, parseFloat(inp.value) || c[k]);
+      else if (k === "aLon") c.aL = inp.checked ? 45 : 0; else if (k === "aRon") c.aR = inp.checked ? 45 : 0;
+      else if (k === "aL" || k === "aR") { const on = inp.closest("td").querySelector("input[type=checkbox]").checked; c[k] = on ? parseFloat(inp.value) || 0 : 0; }
+      renderCuts(); document.dispatchEvent(new CustomEvent("nest:changed"));
+    }));
+    renderCutsPreview();
+  }
+  function renderCutsPreview() {
+    const S = N().state; const bars = S.bars.filter((b) => b.pieces.length);
+    $("#cuts-summary").textContent = `${bars.length} barras · ${N().efficiency().toFixed(1)}%`;
+    $("#cuts-preview").innerHTML = bars.map((b, i) => {
+      const used = b.pieces.reduce((s, p) => s + p.cut.len, 0);
+      const segs = b.pieces.slice().sort((p, q) => p.x - q.x).map((p) => `<i style="width:${p.cut.len / b.len * 100}%;background:${p.cut.color}"></i>`).join("");
+      return `<div class="bar-item" style="cursor:default"><div class="bar-item-head"><span class="name">Barra ${i + 1}</span><span class="eff">${(used / b.len * 100).toFixed(1)}% · R${Math.round(b.len - N().usedEnd(b))}</span></div><div class="mini-bar">${segs}</div></div>`;
+    }).join("") || `<div class="empty-hint">Pulsa Calcular para ver el anidado</div>`;
+  }
+
+  // ── Costs ───────────────────────────────────────────────────────────────
+  function renderCosts() {
+    const totW = COSTS.reduce((s, r) => s + r[3] * r[2], 0), totM = COSTS.reduce((s, r) => s + r[5] * r[2], 0),
+      totL = COSTS.reduce((s, r) => s + r[6] * r[2], 0), tot = COSTS.reduce((s, r) => s + r[9], 0);
+    $("#cost-kpis").innerHTML = [["Peso total", fmt(totW, 1) + " kg", "IPE 200 · 22,4 kg/m"], ["Material", fmt(totM) + " €", "0,85 €/kg"],
+      ["Mano de obra", fmt(totL) + " €", "3 min/corte · 30 €/h"], ["Total pedido", fmt(tot) + " €", "margen 15 % incluido"]]
+      .map(([k, v, d], i) => `<div class="kpi"${i === 3 ? ' style="border-color:var(--accent)"' : ""}><span class="k">${k}</span><span class="v"${i === 3 ? ' style="color:var(--accent)"' : ""}>${v}</span><span class="d">${d}</span></div>`).join("");
+    $("#cost-table tbody").innerHTML = COSTS.map((r) => `<tr><td><b style="font-weight:500">${r[0]}</b> <span class="mono" style="color:var(--text-dim)">${r[1]} mm</span></td><td class="num">${r[2]}</td>
+      <td class="num">${fmt(r[3])} kg</td><td class="num">${fmt(r[4], 3)} m²</td><td class="num">${fmt(r[5])}</td><td class="num">${fmt(r[6])}</td><td class="num">${fmt(r[7])}</td><td class="num">${fmt(r[8])}</td><td class="num"><b>${fmt(r[9])} €</b></td></tr>`).join("");
+    $("#cost-table tfoot").innerHTML = `<tr><td colspan="8" style="text-align:right;font-weight:700;padding:10px">TOTAL PEDIDO</td><td class="num" style="font-weight:700;color:var(--accent)">${fmt(tot)} €</td></tr>`;
+  }
+
+  // ── Profiles ────────────────────────────────────────────────────────────
+  function renderProfiles() {
+    $("#prof-families").innerHTML = FAMILIES.map(([k, l]) => `<button role="tab" aria-selected="${k === profFamily}" data-fam="${k}">${l}</button>`).join("");
+    $$("#prof-families [data-fam]").forEach((b) => b.addEventListener("click", () => { profFamily = b.dataset.fam; renderProfiles(); }));
+    const q = ($("#prof-search").value || "").toLowerCase();
+    const vis = PROFILES.map((p, i) => [p, i]).filter(([p]) => (profFamily === "all" || famOf(p[1]) === profFamily) && (!q || (p[0] + p[2]).toLowerCase().includes(q)));
+    const body = $("#prof-body");
+    if (!vis.length) { body.innerHTML = `<div class="empty-hint">Ningún perfil en esta familia. Crea uno con «Nuevo perfil/tubo».</div>`; }
+    else if (profView === "list") {
+      body.innerHTML = `<div style="overflow-x:auto"><table class="table"><thead><tr><th style="width:48px"></th><th>Nombre</th><th>Material</th><th class="num">h</th><th class="num">b</th><th class="num">tw</th><th class="num">tf</th><th class="num">Sección cm²</th><th class="num">Peso kg/m</th></tr></thead><tbody>${
+        vis.map(([p, i]) => `<tr data-prof="${i}" class="${i === profSel ? "selected" : ""}" style="cursor:pointer"><td>${sectionSVG(p[1], 28)}</td><td>${p[0]}</td><td style="color:var(--text-sec)">${p[2]}</td><td class="num">${p[3]}</td><td class="num">${p[4]}</td><td class="num">${p[5]}</td><td class="num">${p[6]}</td><td class="num">${p[7]}</td><td class="num">${p[8]}</td></tr>`).join("")}</tbody></table></div>`;
+    } else {
+      body.innerHTML = `<div class="cards">${vis.map(([p, i]) => `<div class="card${i === profSel ? " active" : ""}" data-prof="${i}"><div class="card-thumb">${sectionSVG(p[1], 72)}</div><h3>${p[0]}</h3><div class="meta"><span>${p[2]}</span><span class="mono">${p[8]} kg/m</span></div></div>`).join("")}</div>`;
+    }
+    $$("#prof-body [data-prof]").forEach((r) => {
+      r.addEventListener("click", () => { profSel = +r.dataset.prof; renderProfiles(); });
+      r.addEventListener("dblclick", () => window.NT.dialog("profile-creator"));
+    });
+    const p = PROFILES[profSel];
+    $("#prof-inspector").innerHTML = `<div class="section"><div class="card-thumb" style="height:160px">${sectionSVG(p[1], 140)}</div>
+      <div class="section-head"><span class="section-title" style="font-size:var(--fs-lg)">${p[0]}</span><span class="chip">${p[2]}</span></div></div>
+      <div class="section"><div class="section-head"><span class="section-title">Geometría</span></div><div class="field-grid">
+        ${[["h", p[3], "mm"], ["b", p[4], "mm"], ["tw", p[5], "mm"], ["tf", p[6], "mm"]].map(([k, v, u]) => `<div class="field"><span class="label">${k}</span><div class="input"><span class="pre">${k}</span><input class="num" value="${v === "" ? "—" : v}" readonly><span class="unit">${u}</span></div></div>`).join("")}
+      </div></div>
+      <div class="section"><div class="stats" style="grid-template-columns:1fr 1fr"><div class="stat"><span class="v">${p[7]}</span><span class="k">sección cm²</span></div><div class="stat"><span class="v">${p[8]}</span><span class="k">peso kg/m</span></div></div></div>
+      <div class="section"><button class="btn outline block" data-dialog="profile-creator">${ICON("pencil", "sm")}Editar dibujo</button><button class="btn outline block" data-dialog="materials">Cambiar material</button></div>`;
+  }
+
+  // ── Stock ───────────────────────────────────────────────────────────────
+  function renderStock() {
+    const q = ($("#stock-search").value || "").toLowerCase(); const pf = $("#stock-profile").value;
+    const vis = STOCK.map((s, i) => [s, i]).filter(([s]) => (!q || (s.prof + s.q).toLowerCase().includes(q)) && (pf === "Todos los perfiles" || s.prof === pf));
+    $("#stock-count").textContent = `${vis.length} items · ${vis.reduce((t, [s]) => t + s.qty, 0)} ud`;
+    $("#stock-table tbody").innerHTML = vis.map(([s, i]) => `<tr data-stock="${i}" class="${i === stockSel ? "selected" : ""}" style="cursor:pointer">
+      <td><input type="checkbox" style="accent-color:var(--accent)" aria-label="Seleccionar"></td>
+      <td><span class="status-dot" style="background:${s.ok ? "var(--success)" : "var(--text-dim)"}"></span></td>
+      <td>${s.prof}</td><td class="mono" style="font-size:var(--fs-sm)">${s.q}</td><td class="num">${s.len}</td><td class="num">${s.qty}</td>
+      <td>${s.ok ? '<span class="chip success">OK</span>' : '<span class="chip">Usada</span>'}</td>
+      <td>${s.retal ? '<span class="chip accent">Retal</span>' : ""}</td>
+      <td>${s.job ? `<a href="#jobs" class="mono" style="color:var(--accent);font-size:var(--fs-sm)" title="Clic para abrir en el Explorador de Jobs">${s.job}</a>` : ""}</td>
+      <td>${s.used ? `<a href="#jobs" class="mono" style="color:var(--accent);font-size:var(--fs-sm)" title="Clic para abrir en el Explorador de Jobs">${s.used}</a>` : ""}</td></tr>`).join("")
+      || `<tr><td colspan="10" class="empty-hint">Sin stock. Añade barras o perfiles.</td></tr>`;
+    $$("#stock-table [data-stock]").forEach((r) => r.addEventListener("click", (e) => {
+      if (e.target.closest("a")) { e.preventDefault(); showView("jobs"); return; }
+      if (e.target.type === "checkbox") return; stockSel = +r.dataset.stock; renderStock(); }));
+    const s = STOCK[stockSel]; const totalM = STOCK.reduce((t, x) => t + (x.ok ? x.len * x.qty : 0), 0) / 1000;
+    $("#stock-inspector").innerHTML = `<div class="section"><div class="stats"><div class="stat"><span class="v">${STOCK.filter((x) => x.ok).reduce((t, x) => t + x.qty, 0)}</span><span class="k">barras disp.</span></div>
+      <div class="stat"><span class="v">${STOCK.filter((x) => x.retal).length}</span><span class="k">retales</span></div><div class="stat"><span class="v">${fmt(totalM, 1)}</span><span class="k">m lineales</span></div></div></div>
+      <div class="section"><div class="section-head"><span class="section-title">Seleccionado</span>${s.retal ? '<span class="chip accent">Retal</span>' : ""}</div>
+      <div class="field"><span class="label">Perfil / material</span><div class="input"><input value="${s.prof}" readonly></div></div>
+      <div class="field"><span class="label">Calidad / nº de serie</span><div class="input"><input class="num" value="${s.q}" readonly></div></div>
+      <div class="field-grid"><div class="field"><span class="label">Largo</span><div class="input"><span class="pre">L</span><input class="num" value="${s.len}" readonly><span class="unit">mm</span></div></div>
+      <div class="field"><span class="label">Cantidad</span><div class="input"><span class="pre">×</span><input class="num" value="${s.qty}" readonly></div></div></div>
+      <div class="mini-bar" style="height:12px"><i style="width:${Math.min(100, s.len / 12000 * 100)}%;background:${s.retal ? "var(--remnant)" : "var(--accent)"}"></i></div></div>
+      <div class="section"><div class="section-head"><span class="section-title">Trazabilidad</span></div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:var(--fs-sm)"><span style="color:var(--text-sec)">Creado en</span><span class="mono">${s.job || "—"}</span><span style="color:var(--text-sec)">Usado en</span><span class="mono">${s.used || "—"}</span></div></div>`;
+  }
+
+  // ── wiring ──────────────────────────────────────────────────────────────
+  function init() {
+    renderPages(); renderJobs(); renderCuts(); renderCosts(); renderProfiles(); renderStock();
+    $("#jobs-search").addEventListener("input", renderJobs); $("#jobs-field").addEventListener("change", renderJobs);
+    $("#prof-search").addEventListener("input", renderProfiles);
+    $$("#prof-viewmode [data-pv]").forEach((b) => b.addEventListener("click", () => {
+      profView = b.dataset.pv; $$("#prof-viewmode button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); renderProfiles(); }));
+    $("#stock-search").addEventListener("input", renderStock); $("#stock-profile").addEventListener("change", renderStock);
+    $("#stock-all").addEventListener("change", (e) => $$("#stock-table tbody input[type=checkbox]").forEach((c) => { c.checked = e.target.checked; }));
+    document.addEventListener("nest:changed", renderCutsPreview);
+    document.addEventListener("click", (e) => {
+      const t = e.target.closest("[data-toast]"); if (t) toast(t.dataset.toast);
+      const g = e.target.closest("[data-view-go]"); if (g) showView(g.dataset.viewGo);
+    });
+    const A = window.NT.ACTIONS;
+    Object.assign(A, {
+      "job-new": () => window.NT.dialog("job-new"),
+      "job-open": () => { toast(`${JOBS[jobSel].name} abierto`); showView("cuts"); },
+      "job-save": () => confirmDialog({ title: "Guardar cambios", text: `¿Guardar los cambios del job «${JOBS[jobSel].name}»?`, okLabel: "Guardar", danger: false,
+        ok: () => { Object.assign(JOBS[jobSel], { desc: $("#job-desc").value, client: $("#job-client").value, order: $("#job-order").value, offer: $("#job-offer").value }); renderJobs(); toast("Cambios guardados"); } }),
+      "job-delete": () => confirmDialog({ title: "Eliminar job", text: `¿Eliminar el job «${JOBS[jobSel].name}»?`, ok: () => { JOBS.splice(jobSel, 1); jobSel = 0; renderJobs(); } }),
+      "add-cut": () => { const S = N().state; const id = Math.max(0, ...S.cuts.map((c) => c.id)) + 1;
+        const pal = ["#EDC948", "#B07AA1", "#FF9DA7", "#9C755F", "#BAB0AC"];
+        S.cuts.push({ id, name: `Corte ${S.cuts.length + 1}`, len: 1000, qty: 1, aL: 0, aR: 0, color: pal[(id - 6 + pal.length * 10) % pal.length] }); renderCuts(); document.dispatchEvent(new CustomEvent("nest:changed")); },
+      "calc-cuts": () => { window.NestCanvas.state.autoMode = "all"; window.NestCanvas.toggleNest(); },
+      "add-field": () => window.NT.dialog("add-field"),
+      "costs-calc": () => confirmDialog({ title: "Confirmar configuración de costes", text: "¿Continuar con esta configuración de costes? Modo: cortes compartidos (optimizado) · 0,85 €/kg · margen 15 %.", okLabel: "Calcular", danger: false, ok: () => { renderCosts(); toast("Costes recalculados"); } }),
+      "costs-clear": () => { $("#cost-table tbody").innerHTML = `<tr><td colspan="9" class="empty-hint">Configura el perfil y pulsa Calcular</td></tr>`; $("#cost-table tfoot").innerHTML = ""; $("#cost-kpis").innerHTML = ""; },
+      "stock-export": () => toast("Stock exportado a Excel"),
+      "stock-delete": () => confirmDialog({ title: "Eliminar del stock", text: `¿Eliminar ${STOCK[stockSel].prof} · ${STOCK[stockSel].q}?`, ok: () => { STOCK.splice(stockSel, 1); stockSel = 0; renderStock(); } }),
+    });
+  }
+
+  window.NT_VIEWS = { init, renderCuts, renderStock, renderJobs, sectionSVG };
+})();

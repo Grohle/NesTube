@@ -356,7 +356,8 @@
   }
   function removePermanently(cut) {
     const target = cut || (state.sel[0] && state.sel[0].cut); if (!target) return;
-    emit("nest:confirm", { title: "Eliminar pieza", text: `¿Eliminar «${target.name}» del trabajo? Se quita de todas las barras y de la lista de cortes.`,
+    const n = cut ? 1 : Math.max(1, state.sel.length);
+    emit("nest:confirm", { title: "Eliminar pieza", text: n > 1 ? `¿Eliminar ${n} piezas permanentemente?` : "¿Eliminar pieza permanentemente?",
       ok: () => { pushUndo(); state.bars.forEach((b) => { b.pieces = b.pieces.filter((p) => p.cut !== target); });
         state.cuts = state.cuts.filter((c) => c !== target); state.sel = []; refreshAll(); } });
   }
@@ -381,7 +382,7 @@
   function startPan(e, px, py) { pan = { px, py }; wrap.classList.add("panning"); e.preventDefault(); }
   function onPointerMove(e) {
     const r = wrap.getBoundingClientRect(); const px = e.clientX - r.left, py = e.clientY - r.top;
-    emit("nest:cursor", toWorld(px, py));
+    if (px >= 0 && py >= 0 && px <= r.width && py <= r.height && wrap.offsetParent) emit("nest:cursor", toWorld(px, py));
     if (pan) { view.tx += px - pan.px; view.ty += py - pan.py; pan.px = px; pan.py = py; renderOverlay(); return; }
     if (rubber) { const w = toWorld(px, py); rubber.x1 = w.x; rubber.y1 = w.y; renderWorld(); return; }
     if (press && !press.moved && Math.hypot(px - press.px, py - press.py) > 5) {
@@ -427,8 +428,15 @@
   // ── auto-nest (simulated progress; real one runs _AutoNestWorker) ───────
   let nestTimer = null;
   function toggleNest() { state.nesting ? cancelNest() : startNest(); }
-  function startNest() {
+  function startNest(skipClearWarning) {
     if (state.floating) cancelFloating();
+    const placed = state.bars.reduce((s, b) => s + b.pieces.length, 0);
+    if (!skipClearWarning && state.autoMode === "all" && placed > 0) {
+      // TabNesting._run_auto_nest: warn before 'All' wipes manual placements
+      emit("nest:confirm", { title: "¿Borrar piezas colocadas?", text: `El modo 'Todo' eliminará las ${placed} pieza(s) ya colocadas.\n\n¿Continuar?`,
+        danger: false, ok: () => startNest(true) });
+      return;
+    }
     state.nesting = true; emit("nest:running", { pct: 0 });
     let pct = 0;
     nestTimer = setInterval(() => {
@@ -458,6 +466,10 @@
   }
   function refreshRemnants() {
     state.remnants = [];
+    // A remnant becomes new stock, so it is only allowed when the subjob uses
+    // stock (TabNesting._refresh_remnants).
+    state.remnantsBlocked = !state.useStock;
+    if (state.remnantsBlocked) { renderWorld(); emit("nest:changed"); return; }
     state.bars.forEach((b) => {
       if (!b.pieces.length) return;
       const x = usedEnd(b) + state.kerf + state.remMargin; const w = b.len - state.margin - x;
@@ -467,7 +479,7 @@
   }
   function clearRemnants() { state.remnants = []; renderWorld(); emit("nest:changed"); }
   function clearNesting() {
-    emit("nest:confirm", { title: "Limpiar anidado", text: "Se quitarán todas las piezas colocadas de todas las barras. Puedes deshacerlo con Ctrl+Z.",
+    emit("nest:confirm", { title: "Limpiar", text: "¿Borrar el anidado actual? Esta acción no se puede deshacer.",
       ok: () => { pushUndo(); state.bars = []; state.sel = []; state.remnants = []; refreshAll(); fit(); } });
   }
 
@@ -523,5 +535,6 @@
     zoomBy: (dir) => zoomAt(wrap.clientWidth / 2, wrap.clientHeight / 2, dir),
     showAll: () => { state.filteredBar = null; refreshAll(); fit(); },
     isDirty: () => dirty,
+    discardDirty: () => { dirty = false; emit("nest:dirty", false); },
   };
 })();

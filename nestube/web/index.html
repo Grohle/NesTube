@@ -67,6 +67,9 @@
   <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
   <symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></symbol>
   <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></symbol>
+  <symbol id="i-warning" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+  <symbol id="i-error" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></symbol>
+  <symbol id="i-question" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
   <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
   <symbol id="i-line" viewBox="0 0 24 24"><line x1="5" y1="19" x2="19" y2="5"/><circle cx="5" cy="19" r="1.6"/><circle cx="19" cy="5" r="1.6"/></symbol>
   <symbol id="i-rect" viewBox="0 0 24 24"><rect x="4" y="6.5" width="16" height="11" rx="1"/></symbol>
@@ -101,12 +104,13 @@
       <div class="doc-title"><span>PED-2026-001</span><span>/</span><strong id="doc-material">IPE 200 · S235</strong><span class="dirty-dot" id="dirty-dot" title="Cambios sin guardar" hidden></span></div>
     </div>
     <div class="topbar-right">
+      <button class="btn icon-only" title="Catálogo de ventanas y avisos (maqueta)" data-act="catalog"><svg class="icon"><use href="#i-layers"/></svg></button>
       <button class="btn icon-only" title="Atajos de teclado (?)" data-act="shortcuts"><svg class="icon"><use href="#i-keyboard"/></svg></button>
       <button class="btn icon-only" id="theme-btn" title="Cambiar tema claro/oscuro"></button>
-      <span class="vsep"></span>
-      <button class="btn zoom-pill" id="zoom-btn" data-menu aria-haspopup="menu" aria-expanded="false" title="Zoom respecto a la vista ajustada. Clic: opciones de zoom">100%</button>
-      <button class="btn outline" id="export-btn" data-menu aria-haspopup="menu" aria-expanded="false"><svg class="icon sm"><use href="#i-export"/></svg>Exportar<svg class="icon sm caret"><use href="#i-chevron-down"/></svg></button>
-      <div class="split">
+      <span class="vsep nest-only"></span>
+      <button class="btn zoom-pill nest-only" id="zoom-btn" data-menu aria-haspopup="menu" aria-expanded="false" title="Zoom respecto a la vista ajustada. Clic: opciones de zoom">100%</button>
+      <button class="btn outline nest-only" id="export-btn" data-menu aria-haspopup="menu" aria-expanded="false"><svg class="icon sm"><use href="#i-export"/></svg>Exportar<svg class="icon sm caret"><use href="#i-chevron-down"/></svg></button>
+      <div class="split nest-only">
         <button class="btn primary" id="auto-nest-btn" data-act="auto-nest" title="Iniciar anidado automático: coloca todas las piezas pendientes según la estrategia seleccionada"><svg class="icon sm"><use href="#i-gear"/></svg>Auto-anidar</button>
         <button class="btn primary" id="auto-nest-mode" data-menu aria-haspopup="menu" aria-expanded="false" title="Modo: Todo / Solo pendientes"><svg class="icon sm"><use href="#i-chevron-down"/></svg></button>
       </div>
@@ -315,6 +319,274 @@
         </div>
       </aside>
     </section>
+    <!-- ═══════════════════════ JOBS EXPLORER ═══════════════════════ -->
+    <section class="view" id="view-jobs" aria-label="Explorador de Jobs" hidden>
+      <aside class="panel left">
+        <div class="section">
+          <div class="section-head"><span class="section-title">Trabajos <span class="count" id="jobs-count"></span></span>
+            <div class="section-actions"><button class="btn icon-only" title="Nuevo trabajo" data-act="job-new"><svg class="icon sm"><use href="#i-plus"/></svg></button></div></div>
+          <div style="display:grid;grid-template-columns:92px 1fr;gap:6px">
+            <select class="select" id="jobs-field" title="Campo de búsqueda">
+              <option value="name">Nombre</option><option value="client">Cliente</option><option value="material">Perfil/Tubo</option>
+              <option value="order">Pedido</option><option value="offer">Oferta</option>
+            </select>
+            <div class="search"><svg class="icon"><use href="#i-search"/></svg><input id="jobs-search" placeholder="Buscar trabajos…" aria-label="Buscar trabajos"></div>
+          </div>
+        </div>
+        <div class="panel-scroll" style="padding:6px"><div class="list" id="jobs-list"></div></div>
+      </aside>
+
+      <div class="content">
+        <div class="content-head">
+          <h1 id="job-title">JOB-260629-0001</h1>
+          <span class="chip" id="job-date"><svg class="icon sm"><use href="#i-calendar"/></svg>29/06/2026 11:48</span>
+          <button class="btn outline" data-act="job-new"><svg class="icon sm"><use href="#i-plus"/></svg>Nuevo trabajo</button>
+          <button class="btn primary" data-act="job-open">Abrir job</button>
+        </div>
+        <div class="scroll"><div class="content-body">
+          <div class="kpis" id="job-kpis"></div>
+          <div>
+            <div class="section-head" style="margin-bottom:8px"><span class="section-title">Piezas del trabajo</span></div>
+            <table class="table" id="job-pieces"><thead><tr><th>#</th><th>Descripción</th><th>Material</th><th class="num">Longitud (mm)</th><th class="num">Cant.</th></tr></thead><tbody></tbody></table>
+          </div>
+          <div>
+            <div class="section-head" style="margin-bottom:8px"><span class="section-title">Trazabilidad de stock</span></div>
+            <div class="table" style="padding:12px;display:grid;gap:4px;font-size:var(--fs-md)" id="job-trace"></div>
+          </div>
+        </div></div>
+      </div>
+
+      <aside class="panel right">
+        <div class="panel-tabs"><button aria-selected="true">Detalles</button></div>
+        <div class="panel-scroll">
+          <div class="section">
+            <div class="field"><label for="job-name">Nombre</label><div class="input" title="El nombre del job es el número generado automáticamente y no se puede modificar."><svg class="icon sm" style="color:var(--text-dim)"><use href="#i-lock"/></svg><input id="job-name" readonly></div></div>
+            <div class="field"><label for="job-desc">Descripción</label><div class="input"><input id="job-desc"></div></div>
+            <div class="field"><label for="job-client">Cliente</label><div class="input"><svg class="icon sm" style="color:var(--text-dim)"><use href="#i-user"/></svg><input id="job-client"></div></div>
+            <div class="field-grid">
+              <div class="field"><label for="job-order">Pedido</label><div class="input"><input id="job-order"></div></div>
+              <div class="field"><label for="job-offer">Oferta</label><div class="input"><input id="job-offer"></div></div>
+            </div>
+            <button class="btn outline block" data-act="job-save">Guardar cambios</button>
+          </div>
+          <div class="section">
+            <button class="btn primary block" data-act="job-open">Abrir job</button>
+            <button class="btn danger block" data-act="job-delete"><svg class="icon sm"><use href="#i-trash"/></svg>Eliminar job</button>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- ═══════════════════════ CUTS ═══════════════════════ -->
+    <section class="view" id="view-cuts" aria-label="Cortes" hidden>
+      <aside class="panel left">
+        <div class="section">
+          <div class="section-head"><span class="section-title">Materiales</span>
+            <div class="section-actions"><button class="btn icon-only" title="Añadir sub-pestaña de material" data-act="subtab-add"><svg class="icon sm"><use href="#i-plus"/></svg></button></div></div>
+          <div class="list" data-pages="cuts"></div>
+        </div>
+        <div class="panel-scroll">
+          <div class="section">
+            <div class="section-head"><span class="section-title">Trabajo</span></div>
+            <div class="field"><label for="c-material">Material</label>
+              <div style="display:flex;gap:6px"><div class="input" style="flex:1"><input id="c-material" value="IPE 200 · S235" placeholder="Buscar perfil, material o calidad…"></div>
+              <button class="btn outline icon-only" title="Buscar material en stock / catálogo" data-dialog="material-search"><svg class="icon sm"><use href="#i-search"/></svg></button></div></div>
+            <div class="field-grid">
+              <div class="field"><label for="c-order">Nº Pedido</label><div class="input"><input id="c-order" value="PED-2026-001"></div></div>
+              <div class="field"><label for="c-offer">Oferta</label><div class="input"><input id="c-offer" value="OFR-2026-042"></div></div>
+            </div>
+            <div class="field"><label for="c-client">Cliente</label><div class="input"><input id="c-client" value="Cliente Demo SL"></div></div>
+            <button class="btn outline block" data-act="add-field" title="Añadir un campo personalizado (clic derecho sobre el campo para editarlo)"><svg class="icon sm"><use href="#i-plus"/></svg>Añadir campo</button>
+          </div>
+          <div class="section">
+            <div class="section-head"><span class="section-title">Barra</span></div>
+            <div class="field-grid">
+              <div class="field"><label for="c-barlen" title="Longitud de la barra de material a usar para la distribución">Longitud barra</label><div class="input"><span class="pre">L</span><input class="num" id="c-barlen" value="6000"><span class="unit">mm</span></div></div>
+              <div class="field"><label for="c-height" title="Altura de la sección: necesaria para calcular biseles">Altura barra</label><div class="input"><span class="pre">H</span><input class="num" id="c-height" value="200"><span class="unit">mm</span></div></div>
+              <div class="field"><label for="c-kerf" title="Material consumido por cada corte de sierra">Pérdida corte</label><div class="input"><span class="pre">K</span><input class="num" id="c-kerf" value="3.0"><span class="unit">mm</span></div></div>
+              <div class="field"><label for="c-margin" title="Espacio reservado en cada extremo de barra">Margen</label><div class="input"><span class="pre">M</span><input class="num" id="c-margin" value="50.0"><span class="unit">mm</span></div></div>
+            </div>
+            <div class="field"><label for="c-system">Sistema de cálculo</label>
+              <select class="select" id="c-system"><option>FFD (First Fit Decreasing)</option><option>BFD (Best Fit Decreasing)</option><option>NFD (Next Fit Decreasing)</option></select></div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="content">
+        <div class="content-head">
+          <h1>Lista de cortes</h1>
+          <button class="btn icon-only" title="Descargar plantilla XLSX para lista de cortes" data-toast="Plantilla XLSX descargada"><svg class="icon"><use href="#i-import"/></svg></button>
+          <button class="btn icon-only" title="Importar lista de cortes desde archivo XLSX" data-toast="Importar XLSX…"><svg class="icon"><use href="#i-excel"/></svg></button>
+          <button class="btn icon-only" title="Exportar lista de cortes a Excel" data-toast="Lista exportada a Excel"><svg class="icon"><use href="#i-export"/></svg></button>
+          <button class="btn icon-only" title="Exportar lista de cortes a PDF" data-toast="Lista exportada a PDF"><svg class="icon"><use href="#i-pdf"/></svg></button>
+          <button class="btn icon-only" title="Exportar contornos de corte a DXF (vista 2D de cada pieza)" data-toast="DXF de cortes exportados"><svg class="icon"><use href="#i-dxf"/></svg></button>
+          <span class="vsep"></span>
+          <button class="btn outline" data-act="add-cut"><svg class="icon sm"><use href="#i-plus"/></svg>Añadir corte</button>
+          <button class="btn primary" data-act="calc-cuts" title="Calcular distribución óptima de piezas en las barras"><svg class="icon sm"><use href="#i-gear"/></svg>Calcular</button>
+        </div>
+        <div class="scroll"><div class="content-body">
+          <table class="table" id="cuts-table">
+            <thead><tr><th class="idx">#</th><th>Descripción</th><th class="num">Longitud</th><th class="num">Cant.</th><th>Inglete 1</th><th>Inglete 2</th><th>Forma</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <p style="margin:0;font-size:var(--fs-xs);color:var(--text-dim)">El dibujo de cada pieza (clic en «Forma») se abre en el editor de corte con su contorno real. Los ingletes necesitan la altura de barra.</p>
+        </div></div>
+      </div>
+
+      <aside class="panel right">
+        <div class="panel-tabs"><button aria-selected="true">Vista previa del anidado</button></div>
+        <div class="panel-scroll">
+          <div class="section">
+            <div class="section-head"><span class="section-title">Resultado</span><span class="chip success" id="cuts-summary">7 barras · 82.9%</span></div>
+            <div class="list" id="cuts-preview"></div>
+            <button class="btn outline block" data-view-go="nesting"><svg class="icon sm"><use href="#i-nest"/></svg>Abrir en Anidado</button>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- ═══════════════════════ COSTS & WEIGHT ═══════════════════════ -->
+    <section class="view" id="view-costs" aria-label="Costes y Peso" hidden>
+      <aside class="panel left">
+        <div class="section">
+          <div class="section-head"><span class="section-title">Materiales</span>
+            <div class="section-actions"><button class="btn icon-only" title="Añadir sub-pestaña de material" data-act="subtab-add"><svg class="icon sm"><use href="#i-plus"/></svg></button></div></div>
+          <div class="list" data-pages="costs" data-total="1"></div>
+        </div>
+        <div class="section">
+          <div class="search"><svg class="icon"><use href="#i-search"/></svg><input placeholder="Buscar perfil, material o calidad…" aria-label="Buscar perfil"></div>
+          <div class="card" style="cursor:default;padding:10px">
+            <div class="card-thumb" style="height:84px"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M20 10h60v9H55v62h25v9H20v-9h25V19H20z" fill="var(--bg-mid)" stroke="var(--text-sec)" stroke-width="1.5"/></svg></div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><strong>IPE 200</strong><span class="chip">Acero al Carbono</span></div>
+            <div style="display:grid;grid-template-columns:1fr auto;gap:2px 8px;font-size:var(--fs-sm);color:var(--text-sec)" class="mono">
+              <span>h</span><span>200 mm</span><span>b</span><span>100 mm</span><span>tw</span><span>5.6 mm</span><span>tf</span><span>8.5 mm</span>
+              <span>Sección</span><span>28.5 cm²</span><span>Peso lineal</span><span>22.4 kg/m</span>
+            </div>
+            <button class="btn outline block" data-dialog="materials">Editar material</button>
+          </div>
+        </div>
+      </aside>
+
+      <div class="content">
+        <div class="content-head">
+          <h1>Costes y peso</h1>
+          <span class="chip success"><svg class="icon sm"><use href="#i-check"/></svg>Basado en el anidado completado</span>
+          <button class="btn icon-only" title="Exportar Excel" data-toast="Presupuesto exportado a Excel"><svg class="icon"><use href="#i-excel"/></svg></button>
+          <button class="btn icon-only" title="Exportar PDF" data-toast="Presupuesto exportado a PDF"><svg class="icon"><use href="#i-pdf"/></svg></button>
+          <button class="btn icon-only" title="Exportar DOCX" data-toast="Presupuesto exportado a DOCX"><svg class="icon"><use href="#i-doc"/></svg></button>
+          <button class="btn icon-only" title="Imprimir" data-toast="Enviado a imprimir"><svg class="icon"><use href="#i-print"/></svg></button>
+          <span class="vsep"></span>
+          <button class="btn outline" data-act="costs-clear">Limpiar</button>
+          <button class="btn primary" data-act="costs-calc"><svg class="icon sm"><use href="#i-calc"/></svg>Calcular</button>
+        </div>
+        <div class="scroll"><div class="content-body">
+          <div class="kpis" id="cost-kpis"></div>
+          <div>
+            <div class="section-head" style="margin-bottom:8px"><span class="section-title">Resultados por corte</span></div>
+            <div style="overflow-x:auto"><table class="table" id="cost-table">
+              <thead><tr><th>Corte</th><th class="num">Uds</th><th class="num">Peso / ud</th><th class="num">Área / ud</th><th class="num">Material / ud</th><th class="num">Mano obra / ud</th><th class="num">Total / ud</th><th class="num">€/m</th><th class="num">Total línea</th></tr></thead>
+              <tbody></tbody><tfoot></tfoot>
+            </table></div>
+          </div>
+        </div></div>
+      </div>
+
+      <aside class="panel right">
+        <div class="panel-tabs"><button aria-selected="true">Configuración</button></div>
+        <div class="panel-scroll">
+          <div class="section">
+            <div class="section-head"><span class="section-title">Peso</span></div>
+            <div class="field-grid">
+              <div class="field"><label for="k-kgm">kg/m</label><div class="input"><input class="num" id="k-kgm" value="22.4"></div></div>
+              <div class="field"><label for="k-dens">Peso específico</label><div class="input"><input class="num" id="k-dens" value="7.85" readonly><span class="unit">t/m³</span></div></div>
+              <div class="field"><label for="k-wall">Espesor de pared</label><div class="input"><input class="num" id="k-wall" placeholder="—"><span class="unit">mm</span></div></div>
+            </div>
+            <div class="switch-row"><span class="lbl"><span>Sección maciza</span><span class="hint">Sin hueco interior</span></span><label class="switch"><input type="checkbox" aria-label="Sección maciza"><span class="track"></span></label></div>
+          </div>
+          <div class="section">
+            <div class="section-head"><span class="section-title">Precios</span></div>
+            <div class="field-grid">
+              <div class="field"><label for="k-pkg">Precio €/kg</label><div class="input"><input class="num" id="k-pkg" value="0.85"></div></div>
+              <div class="field"><label for="k-pm">Precio €/m</label><div class="input"><input class="num" id="k-pm" placeholder="—"></div></div>
+              <div class="field"><label for="k-pbar">Precio por barra</label><div class="input"><input class="num" id="k-pbar" placeholder="—"><span class="unit">€</span></div></div>
+              <div class="field"><label for="k-margin">Margen beneficio</label><div class="input"><input class="num" id="k-margin" value="15"><span class="unit">%</span></div></div>
+            </div>
+            <div class="field"><label for="k-cur">Moneda</label><select class="select" id="k-cur"><option>€ | EUR</option><option>$ | USD</option><option>£ | GBP</option><option>$ | MXN</option></select></div>
+          </div>
+          <div class="section">
+            <div class="section-head"><span class="section-title">Mano de obra</span></div>
+            <div class="field-grid">
+              <div class="field"><label for="k-tcut">Tiempo corte recto</label><div class="input"><input class="num" id="k-tcut" value="3"><span class="unit">min</span></div></div>
+              <div class="field"><label for="k-miter">Extra inglete</label><div class="input"><input class="num" id="k-miter" value="35"><span class="unit">%</span></div></div>
+              <div class="field"><label for="k-op">Coste operario</label><div class="input"><input class="num" id="k-op" value="30"><span class="unit">€/h</span></div></div>
+            </div>
+          </div>
+          <div class="section">
+            <div class="field"><label for="k-mode">Modo de cálculo de costes</label><select class="select" id="k-mode"><option>Cortes compartidos (optimizado)</option><option>Cortes individuales</option></select></div>
+            <div class="switch-row"><span class="lbl"><span>Repartir coste de retales</span><span class="hint">Entre todas las piezas</span></span><label class="switch"><input type="checkbox" aria-label="Repartir coste de retales"><span class="track"></span></label></div>
+            <div class="switch-row"><span class="lbl"><span>Confirmar antes de calcular</span><span class="hint">Pide confirmar la configuración de costes</span></span><label class="switch"><input type="checkbox" checked aria-label="Confirmar configuración"><span class="track"></span></label></div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- ═══════════════════════ PROFILES & TUBES ═══════════════════════ -->
+    <section class="view two-col" id="view-profiles" aria-label="Perfiles y Tubos" hidden>
+      <div class="content">
+        <div class="content-head">
+          <h1>Perfiles y tubos</h1>
+          <div class="search" style="width:min(320px,100%)"><svg class="icon"><use href="#i-search"/></svg><input id="prof-search" placeholder="Buscar perfil, material o calidad…" aria-label="Buscar perfil"></div>
+          <div class="segmented" role="group" aria-label="Vista" id="prof-viewmode" style="width:180px">
+            <button aria-pressed="true" data-pv="list"><svg class="icon sm"><use href="#i-list"/></svg> Lista</button>
+            <button aria-pressed="false" data-pv="grid"><svg class="icon sm"><use href="#i-grid"/></svg> Cuadrícula</button>
+          </div>
+          <button class="btn outline" data-dialog="materials">Materiales</button>
+          <button class="btn outline" data-dialog="profile-creator" id="prof-edit-btn">Editar</button>
+          <button class="btn primary" data-dialog="profile-creator"><svg class="icon sm"><use href="#i-plus"/></svg>Nuevo perfil/tubo</button>
+        </div>
+        <div class="sub-tabs" id="prof-families" role="tablist" aria-label="Familias"></div>
+        <div class="scroll" style="flex:1"><div class="content-body" id="prof-body"></div></div>
+      </div>
+      <aside class="panel right">
+        <div class="panel-tabs"><button aria-selected="true">Propiedades</button></div>
+        <div class="panel-scroll" id="prof-inspector"></div>
+      </aside>
+    </section>
+
+    <!-- ═══════════════════════ STOCK ═══════════════════════ -->
+    <section class="view two-col" id="view-stock" aria-label="Stock" hidden>
+      <div class="content">
+        <div class="content-head">
+          <h1>Stock</h1>
+          <div class="search" style="width:min(240px,100%)"><svg class="icon"><use href="#i-search"/></svg><input id="stock-search" placeholder="Perfil/Material…" aria-label="Buscar en stock"></div>
+          <select class="select" id="stock-profile" style="width:170px"><option>Todos los perfiles</option><option>IPE 200</option><option>HEA 140</option></select>
+          <span class="chip mono" id="stock-count"></span>
+          <span class="vsep"></span>
+          <button class="btn outline" data-act="stock-export"><svg class="icon sm"><use href="#i-excel"/></svg>Exportar Excel</button>
+          <button class="btn outline" data-dialog="stock-fields">Editar campos</button>
+          <button class="btn danger" data-act="stock-delete"><svg class="icon sm"><use href="#i-x"/></svg>Eliminar</button>
+          <button class="btn primary" data-dialog="stock-add"><svg class="icon sm"><use href="#i-plus"/></svg>Añadir al stock</button>
+        </div>
+        <div class="content-head" style="padding-block:8px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:var(--fs-md)"><input type="checkbox" id="stock-all" style="accent-color:var(--accent)">Seleccionar todos</label>
+          <span class="vsep"></span>
+          <div class="input" style="width:150px"><span class="pre">≥</span><input class="num" placeholder="0" aria-label="Longitud mínima"><span class="unit">mm</span></div>
+          <div class="input" style="width:150px"><span class="pre">≤</span><input class="num" placeholder="∞" aria-label="Longitud máxima"><span class="unit">mm</span></div>
+          <span style="font-size:var(--fs-sm);color:var(--text-sec);margin-left:8px">Largo mínimo retal</span>
+          <div class="input" style="width:110px"><input class="num" value="200" aria-label="Largo mínimo retal"><span class="unit">mm</span></div>
+        </div>
+        <div class="scroll" style="flex:1"><div class="content-body">
+          <table class="table" id="stock-table">
+            <thead><tr><th style="width:28px"></th><th style="width:18px"></th><th>Perfil/Material</th><th>Calidad</th><th class="num">Largo</th><th class="num">Cantidad</th><th>Disponible</th><th>Retal</th><th>Job de creación</th><th>Usado en jobs</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div></div>
+      </div>
+      <aside class="panel right">
+        <div class="panel-tabs"><button aria-selected="true">Resumen</button></div>
+        <div class="panel-scroll" id="stock-inspector"></div>
+      </aside>
+    </section>
   </main>
 
   <!-- ═══════════════════════ STATUS BAR ═══════════════════════ -->
@@ -329,7 +601,7 @@
   </footer>
 </div>
 
-<div class="hint-toast" id="toast" hidden style="position:fixed;bottom:40px;z-index:70"></div>
+<div class="hint-toast" id="toast" hidden style="position:fixed;top:56px;bottom:auto;z-index:70"></div>
 
 <div class="modal-backdrop" id="modal-backdrop" hidden>
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -342,6 +614,7 @@
 <script src="js/ui.js"></script>
 <script src="js/nesting.js"></script>
 <script src="js/dialogs.js"></script>
+<script src="js/alerts.js"></script>
 <script src="js/views.js"></script>
 <script src="js/app.js"></script>
 </body>
