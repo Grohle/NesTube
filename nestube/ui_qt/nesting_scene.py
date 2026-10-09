@@ -72,6 +72,39 @@ def _text_color_for_bg(hex_color: str) -> str:
     return "#FFFFFF" if cr_white >= cr_dark else "#1C1C1E"
 
 
+def piece_end(pp) -> float:
+    """Right end (mm) of a placed piece on its bar, from its real contour.
+
+    A piece mitered in opposite directions is a parallelogram that reaches
+    largo + section height, so ``x_offset + largo`` under-measured the used
+    length and overstated the offcut by up to one section height.
+    """
+    pts = getattr(pp, "poly_local", None)
+    if pts:
+        return pp.x_offset + max(x for x, _y in pts)
+    return pp.x_offset + pp.corte.largo
+
+
+def bar_usage_pct(bar, bar_len: float, section_h: float) -> float:
+    """Share of a bar taken by its pieces (%), by contour area.
+
+    Mitered pieces nest into each other and share material, so summing
+    nominal lengths could pass 100 %; the contour area is what is really cut.
+    """
+    if not bar or bar_len <= 0 or section_h <= 0:
+        return 0.0
+    area = 0.0
+    for pp in bar:
+        pts = getattr(pp, "poly_local", None)
+        if pts and len(pts) >= 3:
+            n = len(pts)
+            area += abs(sum(pts[i][0] * pts[(i + 1) % n][1] - pts[(i + 1) % n][0] * pts[i][1]
+                            for i in range(n))) / 2.0
+        else:
+            area += pp.corte.largo * section_h
+    return min(100.0, area / (bar_len * section_h) * 100.0)
+
+
 def _mm_poly(local_pts: List[Tuple[float, float]], dx: float, dy: float) -> QPolygonF:
     """Build a QPolygonF from local (mm) points translated by (dx, dy) scene units."""
     poly = QPolygonF()
@@ -399,7 +432,7 @@ class NestingScene(QGraphicsScene):
 
             # ── Remnant area ─────────────────────────────────────────
             if show_remnants and bar_pieces:
-                used = max(pp.x_offset + pp.corte.largo for pp in bar_pieces)
+                used = max(piece_end(pp) for pp in bar_pieces)
                 start = used + max(remnant_margin, 0.0)
                 retal_w = bar_len - start
                 if retal_w > 0.5:
