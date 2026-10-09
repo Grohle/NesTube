@@ -315,8 +315,9 @@
     efficiency() {
       const bars = S.bars.filter((b) => b.pieces.length);
       if (!bars.length) return 0;
-      const used = bars.reduce((s, b) => s + b.pieces.reduce((t, p) => t + p.cut.len, 0), 0);
-      return used / bars.reduce((s, b) => s + b.len, 0) * 100;
+      // Per-bar utilisation comes from the engine (contour area), weighted by bar length.
+      const used = bars.reduce((s, b) => s + (b.eff || 0) * b.len, 0);
+      return used / bars.reduce((s, b) => s + b.len, 0);
     },
     usedEnd: (bar) => bar.len - (bar.rem || 0),
     cutById: (id) => S.cuts[id], polyLocal: () => [],

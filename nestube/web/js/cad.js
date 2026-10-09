@@ -310,6 +310,21 @@
     if (st.tool === "polygon" && st.step === 0 && /^\d+$/.test(raw)) { st.polySides = Math.max(3, Math.min(64, +raw)); st.step = 1; log(`Número de lados: ${st.polySides}`, "dim"); prompt(); return; }
     const m = raw.match(/^(-?[\d.]+)\s*,\s*(-?[\d.]+)$/); // absolute X,Y
     if (m && st.tool !== "select") { click([+m[1], +m[2]], null); return; }
+    const last = st.pts[st.pts.length - 1];
+    if (last && st.tool !== "select") {
+      const rel = raw.match(/^@(-?[\d.]+)\s*,\s*(-?[\d.]+)$/);          // @dX,dY relative
+      if (rel) { click([last[0] + +rel[1], last[1] + +rel[2]], null); return; }
+      const pol = raw.match(/^@?([\d.]+)\s*<\s*(-?[\d.]+)$/);           // @L<angle polar
+      if (pol) { const a = +pol[2] * Math.PI / 180; click([last[0] + +pol[1] * Math.cos(a), last[1] + +pol[1] * Math.sin(a)], null); return; }
+      if (/^[\d.]+$/.test(raw) && +raw > 0) {
+        // A bare number: radius for circle/polygon, otherwise a length along
+        // the cursor direction (AutoCAD "direct distance entry").
+        if ((st.tool === "circle" || st.tool === "polygon") && st.pts.length === 1) { click([last[0] + +raw, last[1]], null); return; }
+        st.dynLen = raw; st.dynAng = "";
+        if (dynCommit()) { st.dynLen = ""; return; }
+        st.dynLen = "";
+      }
+    }
     if (ALIASES[raw]) { setTool(ALIASES[raw]); return; }
     if (raw === "U" || raw === "H" || raw === "DESHACER") return undo();
     if (raw === "REHACER" || raw === "REDO") return redo();

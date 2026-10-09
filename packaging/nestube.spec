@@ -1,5 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
-# PyInstaller spec — NesTube (PySide6 / Qt) (PySide6 / Qt)
+# PyInstaller spec — NesTube (PySide6 / Qt)
+# The main window is the HTML interface (nestube/web) in Qt WebEngine;
+# collect_all("PySide6") brings QtWebEngineProcess and its resources.
 import os
 
 from PyInstaller.utils.hooks import collect_all, collect_submodules
@@ -10,6 +12,7 @@ ROOT = os.path.abspath(os.path.join(SPECPATH, ".."))
 pyside_datas, pyside_binaries, pyside_hidden = collect_all("PySide6")
 
 font_src = os.path.join(ROOT, "nestube", "fonts")
+web_src = os.path.join(ROOT, "nestube", "web")
 assets_src = os.path.join(ROOT, "nestube", "assets")
 extra_datas = [
     (font_src, "nestube/fonts"),
@@ -17,10 +20,13 @@ extra_datas = [
     (os.path.join(assets_src, "icon.png"), "nestube/assets"),
     (os.path.join(assets_src, "icon.ico"), "nestube/assets"),
     (os.path.join(assets_src, "icons"), "nestube/assets/icons"),
+    # HTML interface: nestube/ui_web/window.py loads nestube/web/index.html
+    (web_src, "nestube/web"),
 ]
 
 hidden = list(pyside_hidden)
 hidden += collect_submodules("nestube")
+hidden += ["PySide6.QtWebEngineWidgets", "PySide6.QtWebEngineCore", "PySide6.QtWebChannel"]
 hidden += [
     "pandas",
     "openpyxl",

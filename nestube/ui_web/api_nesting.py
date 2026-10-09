@@ -9,7 +9,7 @@ bar i at y = i·(section_h + BAR_GAP_MM)) and serialises the resulting state.
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from PySide6.QtCore import QObject, QPointF, Slot
 from PySide6.QtGui import QTransform
@@ -22,6 +22,12 @@ _MAIN_TABS = {"jobs": 0, "cuts": 1, "nesting": 2, "costs": 3, "profiles": 4, "st
 
 def _r(v: float, d: int = 2) -> float:
     return round(float(v), d)
+
+
+def _shoelace(poly) -> float:
+    n = len(poly)
+    return 0.5 * sum(poly[i][0] * poly[(i + 1) % n][1] - poly[(i + 1) % n][0] * poly[i][1]
+                     for i in range(n)) if n >= 3 else 0.0
 
 
 class _AutoNestRelay(QObject):
@@ -106,6 +112,8 @@ class NestingAPI:
         bars = []
         for bi, bar in enumerate(tab._bars):
             items = []
+            area = 0.0      # real material of the pieces (contour area)
+            end = 0.0       # right end of the last contour
             for k, pp in enumerate(bar):
                 pi = tab._piece_info_for(pp)
                 poly = pp.poly_local or tab._compute_poly_local(pp.corte, pp.flipped_h, pp.flipped_v)
@@ -117,11 +125,16 @@ class NestingAPI:
                     "poly": [[_r(x, 2), _r(y, 2)] for x, y in poly],
                     "sel": id(pp) in sel, "hl": id(pp) in hl,
                 })
-            used = sum(p.corte.largo for p in bar)
+                area += abs(_shoelace(poly))
+                end = max(end, pp.x_offset + max((x for x, _y in poly), default=pp.corte.largo))
             L = tab._bar_len_for(bi)
+            # Utilisation by contour area, not nominal lengths: mitered pieces
+            # nest into each other and share material, so the sum of their
+            # lengths can exceed the bar (it showed e.g. 110 %).
+            eff = area / (L * sh) * 100 if L and sh else 0.0
             bars.append({"i": bi, "len": L, "y": bi * pitch, "pieces": items,
-                         "eff": _r(used / L * 100 if L else 0, 1),
-                         "rem": _r(max(0.0, L - max((p.x_offset + p.corte.largo for p in bar), default=0.0)), 0),
+                         "eff": _r(min(eff, 100.0), 1),
+                         "rem": _r(max(0.0, L - end), 0),
                          "stock": (tab._bar_stock_ids[bi] if bi < len(tab._bar_stock_ids) else None)})
 
         pieces = []
@@ -181,7 +194,8 @@ class NestingAPI:
             "advanced": tab._mode_switch.isChecked(), "snap": tab._cb_snap.isChecked(),
             "common": tab._cb_common.isChecked(),
             "strategy": ui.strategy_combo.currentData() or "length",
-            "strategies": [[ui.strategy_combo.itemData(i), ui.strategy_combo.itemText(i)] for i in range(ui.strategy_combo.count())],
+            "strategies": [[ui.strategy_combo.itemData(i), ui.strategy_combo.itemText(i)]
+                           for i in range(ui.strategy_combo.count())],
             "opt": ui.opt_combo.currentIndex(),
             "opt_labels": [ui.opt_combo.itemText(i) for i in range(ui.opt_combo.count())],
             "calc": tab._calc_combo.currentData() or "ffd",

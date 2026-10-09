@@ -10,12 +10,11 @@ follow the app theme); file pickers are always native.
 from __future__ import annotations
 
 import os
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from PySide6.QtCore import QUrl
 
-from nestube import __version__, app_config, units
+from nestube import __version__, app_config
 from nestube.context_sync import ensure_material_contexts
 from nestube.i18n import t
 
@@ -235,7 +234,8 @@ class DataAPI:
         sd = db.get_job_state(int(id)) or {}
         mats, pieces, stock_lines = [], [], []
         for mc in sd.get("material_contexts") or []:
-            label = format_full_name(mc.get("profile_name", ""), mc.get("material", ""), mc.get("quality", "")).strip(" ·")
+            label = format_full_name(mc.get("profile_name", ""), mc.get("material", ""),
+                                     mc.get("quality", "")).strip(" ·")
             if label:
                 mats.append(label)
             for c in mc.get("cortes") or []:
