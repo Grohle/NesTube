@@ -72,15 +72,19 @@
   document.addEventListener("pointerdown", (e) => { if (!e.target.closest(".menu") && !e.target.closest("[data-menu]")) closeMenus(); });
 
   // ── dialogs ─────────────────────────────────────────────────────────────
-  function openModal(title, bodyHTML, footHTML, wide) {
+  function openModal(title, bodyHTML, footHTML, wide, opts = {}) {
     $("#modal-title").textContent = title;
     $("#modal-body").innerHTML = bodyHTML;
     $("#modal-foot").innerHTML = footHTML || `<button class="btn outline" data-close>Cerrar</button>`;
     $("#modal").style.width = wide === "xl" ? "min(1080px,100%)" : wide ? "min(760px,100%)" : "";
     $("#modal-backdrop").hidden = false;
+    // A dialog can opt out of closing when the backdrop is clicked (the
+    // Cancel button and Esc still close it).
+    if (opts.noBackdropClose) $("#modal-backdrop").dataset.noBackdropClose = "1";
+    else delete $("#modal-backdrop").dataset.noBackdropClose;
     const f = $("#modal-body input, #modal-body select, #modal-foot .btn.primary"); if (f) f.focus();
   }
-  function closeModal() { $("#modal-backdrop").hidden = true; $("#modal").classList.remove("modal-alert"); }
+  function closeModal() { $("#modal-backdrop").hidden = true; delete $("#modal-backdrop").dataset.noBackdropClose; $("#modal").classList.remove("modal-alert"); }
   function confirmDialog({ title, text, ok, okLabel = "Sí", cancelLabel = "No", danger = true }) {
     alertBox({ kind: "question", title, msg: text, buttons: [{ label: cancelLabel }, { label: okLabel, primary: true, danger, action: ok }] });
   }

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import os
 
-from PySide6.QtCore import QFile, QIODevice, QUrl
+from PySide6.QtCore import QFile, QIODevice, Qt, QUrl
 from PySide6.QtGui import QIcon
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineScript, QWebEngineSettings
@@ -99,6 +99,9 @@ class WebMainWindow(QMainWindow):
         self.view = QWebEngineView(self)
         self.page = _Page(self.view)
         self.view.setPage(self.page)
+        # Second layer for bug 3 (the page also blocks contextmenu in JS):
+        # the app draws its own menus, never the WebEngine default one.
+        self.view.setContextMenuPolicy(Qt.NoContextMenu)
         s = self.page.settings()
         s.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
         s.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, False)

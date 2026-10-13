@@ -261,6 +261,7 @@
     undo: () => act("undo"), redo: () => act("redo"), save: () => act("save"),
     escape: () => act("escape"),
     addBar: () => act("add_bar"),
+    deleteBar: (id) => call("nest.delete_bar", { i: id }),
     moveBar: (id, dir) => call("nest.move_bar", { i: id, direction: dir }),
     filterBar: (id) => { S.filteredBar = S.filteredBar === id ? null : id; renderWorld(); fit(); emit("nest:changed"); },
     showAll: () => { S.filteredBar = null; renderWorld(); fit(); emit("nest:changed"); },

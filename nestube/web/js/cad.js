@@ -379,6 +379,128 @@
   }
   function setImage(src) { st.image = src; $("#cad-img").innerHTML = src ? `<img src="${src}" alt="Imagen del perfil">` : `<span style="color:#888;font-size:var(--fs-sm)">(sin imagen)</span>`; }
 
+  // ── file export / import (real files) ────────────────────────────────────
+  const docName = () => (($("#cad-docname", root).textContent || "dibujo").trim() || "dibujo").replace(/[\\/:*?"<>|]/g, "-");
+  function downloadFile(name, blob) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  }
+  function exportPng() {
+    if (!st.ents.length) return log("No hay nada que exportar", "warn");
+    const svgText = drawingSvg(1024);
+    if (!svgText) return log("No hay nada que exportar", "warn");
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas"); c.width = 1024; c.height = 1024;
+      c.getContext("2d").drawImage(img, 0, 0);
+      c.toBlob((b) => { if (b) { downloadFile(docName() + ".png", b); log("PNG transparente exportado"); } }, "image/png");
+    };
+    img.onerror = () => log("No se pudo generar el PNG", "warn");
+    img.src = "data:image/svg+xml;utf8," + encodeURIComponent(svgText);
+  }
+  function drawingSvg(px) {
+    // Self-contained SVG of the current drawing, like thumbnail() but at
+    // export resolution and with a transparent background.
+    const pts = st.ents.flatMap((e) => e.type === "circle" ? [[e.c[0] - e.r, e.c[1] - e.r], [e.c[0] + e.r, e.c[1] + e.r]] : e.type === "arc" ? arcPts(e, 12) : e.pts);
+    if (!pts.length) return "";
+    const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+    const x0 = Math.min(...xs), y0 = Math.min(...ys), w = Math.max(...xs) - x0 || 1, h = Math.max(...ys) - y0 || 1;
+    const s = (px - 16) / Math.max(w, h), ox = px / 2 - (x0 + w / 2) * s, oy = px / 2 + (y0 + h / 2) * s;
+    const P = (p) => `${(p[0] * s + ox).toFixed(1)} ${(-p[1] * s + oy).toFixed(1)}`;
+    const body = st.ents.map((e) => e.type === "circle" ? `<circle cx="${e.c[0] * s + ox}" cy="${-e.c[1] * s + oy}" r="${e.r * s}" fill="${e.void ? "#fff" : "#C9C9CF"}" stroke="#55555C"/>`
+      : `<path d="${(e.type === "arc" ? arcPts(e, 32) : e.pts).map((p, i) => (i ? "L" : "M") + P(p)).join("")}${e.closed ? "Z" : ""}" fill="${e.closed ? (e.void ? "#fff" : "#C9C9CF") : "none"}" stroke="#55555C"/>`).join("");
+    return `<svg xmlns="${NS}" width="${px}" height="${px}" viewBox="0 0 ${px} ${px}">${body}</svg>`;
+  }
+  function exportDxf() {
+    if (!st.ents.length) return log("No hay nada que exportar", "warn");
+    const f = (n) => (+n).toFixed(4);
+    const L = [];
+    const push = (...a) => L.push(...a);
+    // Minimal R12 DXF: header + a Continuous linetype + layer 0, then ENTITIES.
+    push("0", "SECTION", "2", "HEADER", "9", "$ACADVER", "1", "AC1009", "0", "ENDSEC");
+    push("0", "SECTION", "2", "TABLES", "0", "TABLE", "2", "LTYPE", "5", "5", "100", "AcDbSymbolTable", "70", "1",
+      "0", "LTYPE", "5", "6", "100", "AcDbSymbolTableRecord", "100", "AcDbLinetypeTableRecord", "2", "Continuous", "70", "0", "3", "", "72", "65", "73", "0", "40", "0.0", "0", "ENDTAB",
+      "0", "TABLE", "2", "LAYER", "5", "2", "100", "AcDbSymbolTable", "70", "1",
+      "0", "LAYER", "5", "3", "100", "AcDbSymbolTableRecord", "100", "AcDbLayerTableRecord", "2", "0", "70", "0", "62", "7", "6", "Continuous", "0", "ENDTAB", "0", "ENDSEC");
+    push("0", "SECTION", "2", "ENTITIES");
+    for (const e of st.ents) {
+      if (e.type === "circle") {
+        push("0", "CIRCLE", "8", "0", "10", f(e.c[0]), "20", f(e.c[1]), "30", "0.0", "40", f(e.r));
+      } else if (e.type === "arc") {
+        push("0", "ARC", "8", "0", "10", f(e.c[0]), "20", f(e.c[1]), "30", "0.0", "40", f(e.r),
+          "50", f(e.a0 * 180 / Math.PI), "51", f(e.a1 * 180 / Math.PI));
+      } else {
+        push("0", "LWPOLYLINE", "8", "0", "90", String(e.pts.length), "70", e.closed ? "1" : "0");
+        for (const p of e.pts) push("10", f(p[0]), "20", f(p[1]));
+      }
+    }
+    push("0", "ENDSEC", "0", "EOF");
+    downloadFile(docName() + ".dxf", new Blob([L.join("\n")], { type: "application/dxf" }));
+    log("Dibujo exportado a DXF");
+  }
+  function importDxf() {
+    const inp = document.createElement("input");
+    inp.type = "file"; inp.accept = ".dxf";
+    inp.addEventListener("change", () => {
+      const file = inp.files[0]; if (!file) return;
+      const rd = new FileReader();
+      rd.onload = () => { try { importDxfText(String(rd.result)); } catch (err) { log("No se pudo importar el DXF: " + err.message, "warn"); } };
+      rd.readAsText(file);
+    });
+    inp.click();
+  }
+  function importDxfText(text) {
+    // Minimal DXF reader: ENTITIES section, LINE / LWPOLYLINE / POLYLINE /
+    // CIRCLE / ARC. Group codes are read as (code, value) pairs.
+    const lines = text.split(/\r?\n/);
+    const pairs = [];
+    for (let i = 0; i + 1 < lines.length; i += 2) pairs.push([lines[i].trim(), lines[i + 1].trim()]);
+    const raw = [];
+    let inEntities = false, cur = null;
+    for (const [code, val] of pairs) {
+      if (code === "0" && val === "SECTION") { cur = null; continue; }
+      if (code === "0" && val === "ENTITIES") { inEntities = true; continue; }
+      if (code === "0" && val === "ENDSEC") { if (cur) raw.push(cur); cur = null; inEntities = false; continue; }
+      if (!inEntities) continue;
+      if (code === "0") { if (cur) raw.push(cur); cur = { type: val, codes: [] }; continue; }
+      if (cur) cur.codes.push([code, val]);
+    }
+    if (cur) raw.push(cur);
+    const g = (e, code, dflt = 0) => { const hit = e.codes.find(([c]) => c === code); return hit ? parseFloat(hit[1]) : dflt; };
+    const gAll = (e, code) => e.codes.filter(([c]) => c === code).map(([, v]) => parseFloat(v));
+    const added = [];
+    let poly = null;
+    const flushPoly = () => { if (poly && poly.pts.length > 1) added.push(poly); poly = null; };
+    for (const e of raw) {
+      if (e.type === "LINE") {
+        added.push({ type: "poly", pts: [[g(e, "10"), g(e, "20")], [g(e, "11"), g(e, "21")]] });
+      } else if (e.type === "CIRCLE") {
+        added.push({ type: "circle", c: [g(e, "10"), g(e, "20")], r: g(e, "40") });
+      } else if (e.type === "ARC") {
+        added.push({ type: "arc", c: [g(e, "10"), g(e, "20")], r: g(e, "40"),
+          a0: g(e, "50") * Math.PI / 180, a1: g(e, "51") * Math.PI / 180 });
+      } else if (e.type === "LWPOLYLINE") {
+        const xs = gAll(e, "10"), ys = gAll(e, "20");
+        const pts = xs.map((x, i) => [x, ys[i] ?? 0]);
+        if (pts.length > 1) added.push({ type: "poly", closed: (g(e, "70") & 1) === 1, pts });
+      } else if (e.type === "POLYLINE") {
+        poly = { type: "poly", closed: (g(e, "70") & 1) === 1, pts: [] };
+      } else if (e.type === "VERTEX" && poly) {
+        poly.pts.push([g(e, "10"), g(e, "20")]);
+      } else if (e.type === "SEQEND") {
+        flushPoly();
+      }
+    }
+    flushPoly();
+    if (!added.length) { log("El DXF no contiene entidades importables", "warn"); return; }
+    commit(() => { st.ents.push(...added); st.sel.clear(); });
+    log(`${added.length} entidad(es) importadas desde DXF`);
+    zoomExtents();
+  }
+
   // ── DOM ─────────────────────────────────────────────────────────────────
   const rb = (t, big) => { const T = TOOLS[t]; return `<button class="rb${big ? " big" : ""}" data-tool="${t}" title="${T.label} (${T.alias})${T.cmd ? " · orden " + T.cmd : ""}">${I(T.icon, big ? "lg" : "")}<span>${T.label}</span>${big ? "" : `<kbd>${T.alias}</kbd>`}</button>`; };
   function build() {
@@ -479,7 +601,7 @@
           [...st.sel].forEach((i) => { const e = st.ents[i]; st.sides.push({ name: `Lado ${st.sides.length + 1}`, len: (e.type === "circle" ? 2 * Math.PI * e.r : segs(e).reduce((s, [a, b]) => s + dist(a, b), 0)).toFixed(1), t: v }); }); refreshProps(); log(`Espesor ${v} mm asignado`); },
         "side-add": () => { const n = $("#ms-name", root).value || `Lado ${st.sides.length + 1}`, l = $("#ms-len", root).value, t = $("#ms-t", root).value; if (!l) return $("#ms-len", root).focus(); st.sides.push({ name: n, len: l, t: t || "—", manual: true }); refreshProps(); },
         "side-del": () => { const i = st.sides.map((s) => !!s.manual).lastIndexOf(true); if (i >= 0) { st.sides.splice(i, 1); refreshProps(); } },
-        idxf: () => window.NT.toast("Importar DXF: líneas, polilíneas, círculos y arcos"), edxf: () => window.NT.toast("Dibujo exportado a DXF"), epng: () => window.NT.toast("PNG transparente exportado"),
+        idxf: () => importDxf(), edxf: () => exportDxf(), epng: () => exportPng(),
         "arc-cancel": () => { $("#cad-arcform", root).hidden = true; cancel(); },
       })[c.dataset.cad]();
     });
@@ -552,13 +674,19 @@
     new ResizeObserver(() => draw()).observe(model);
   }
 
-  function open(name = "IPE 200") {
+  function open(name = "IPE 200", poly = null) {
     if (!root) build();
     root.hidden = false;
     $("#cad-docname", root).textContent = name;
+    // A polygon passed in (e.g. a placed piece's contour from the bridge)
+    // becomes the starting drawing instead of a blank page.
+    const preload = Array.isArray(poly) && poly.length > 2
+      ? [{ type: "poly", closed: true, pts: poly.map((p) => [+p[0], +p[1]]) }] : null;
     if (window.NT_NATIVE) {
-      // Real app: every open is a new, blank drawing.
-      st.ents = []; st.sel.clear(); st.undo = []; st.redo = []; st.sides = []; setImage("");
+      // Real app: every open is a new drawing (blank, or the preloaded polygon).
+      st.ents = preload || []; st.sel.clear(); st.undo = []; st.redo = []; st.sides = []; setImage("");
+    } else if (preload) {
+      st.ents = preload; st.sides = [];
     } else {
       if (!st.ents.length) st.ents = [ipe200()];
       st.sides = [{ name: "Alma", len: "183.0", t: 5.6 }, { name: "Ala sup.", len: "100.0", t: 8.5 }, { name: "Ala inf.", len: "100.0", t: 8.5 }];

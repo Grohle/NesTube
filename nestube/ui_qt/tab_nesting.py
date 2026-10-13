@@ -3129,6 +3129,36 @@ class TabNesting(QWidget):
         self._refresh_right_sidebar()
         self._update_status()
 
+    def _delete_bar(self, bar_idx: int) -> None:
+        """Remove one bar from the layout, returning its pieces to the sidebar."""
+        if not (0 <= bar_idx < len(self._bars)):
+            return
+        self._push_undo()
+        for pp in self._bars[bar_idx]:
+            pi = self._piece_info_for(pp)
+            if pi is not None and pi.placed_qty > 0:
+                pi.placed_qty -= 1
+        stock_id = self._bar_stock_ids[bar_idx] if bar_idx < len(self._bar_stock_ids) else None
+        del self._bars[bar_idx]
+        if bar_idx < len(self._bar_lengths):
+            del self._bar_lengths[bar_idx]
+        if bar_idx < len(self._bar_stock_ids):
+            del self._bar_stock_ids[bar_idx]
+        if stock_id is not None:
+            # The deleted bar was a physical stock bar: drop the single-bar
+            # link so a later save cannot deduct from a bar no longer used.
+            ensure_material_contexts(self._state)
+            ctx = self._state.material_contexts[self._state.active_material_index]
+            if ctx.linked_stock_bar_id == stock_id:
+                ctx.linked_stock_bar_id = None
+                ctx.linked_stock_bar_name = ""
+                self._stock_bar_lbl.setVisible(False)
+                self._stock_bar_lbl.setText("")
+        self._nesting_dirty = True
+        self._rebuild_scene()
+        self._refresh_right_sidebar()
+        self._update_status()
+
     def _pick_stock_bar_for_add(self, ctx=None):
         """Open the stock-bar picker and return the chosen StockBar (or None).
 

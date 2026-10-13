@@ -402,7 +402,7 @@ select.select, .select {
 .menu .submenu { position: absolute; left: 100%; top: -6px; margin-left: 4px; }
 
 /* modal (dialog shells) */
-.modal-backdrop { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.35); display: grid; place-items: center; padding: 16px; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 82; background: rgba(0,0,0,.35); display: grid; place-items: center; padding: 16px; }
 .modal-backdrop[hidden] { display: none; }
 .modal { width: min(560px, 100%); max-height: 86vh; display: flex; flex-direction: column; background: var(--bg-panel);
   border-radius: 12px; box-shadow: var(--shadow-menu); border: 1px solid var(--border); overflow: hidden; }
