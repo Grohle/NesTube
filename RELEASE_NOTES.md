@@ -1,3 +1,40 @@
+## NesTube 1.0.1-alpha.1
+
+**Patch release: five bugs found while testing the new interface are fixed.**
+
+> **Status:** alpha. The core works and is tested, but interfaces and file formats may still change before 1.0.
+
+### Fixes
+
+- **Edit Drawing opens the new CAD module.** It used to open the legacy Qt editor; now it opens the web drawing module with the piece contour preloaded.
+- **CAD export/import work.** Export PNG, Export DXF and Import DXF were placeholder toasts; they now produce real files (transparent PNG at 1024×1024, minimal R12 DXF, basic DXF import of lines, polylines, circles and arcs).
+- **CAD dialogs are visible.** The confirmation and save dialogs used to render behind the CAD overlay; the modal backdrop and toasts now layer above it.
+- **No more browser context menu.** Right-clicking anywhere in the app showed the WebEngine default menu; the app now blocks it everywhere except text inputs (copy/paste still works).
+- **Bars can be deleted.** The Bars column had no delete action; each bar now has a trash button (with confirmation when it holds pieces, which return to the cut list).
+- **Material dialog no longer closes on outside clicks.** Clicking outside the dialog silently cancelled the selection; now only Cancel, × and Esc close it, and there is a **No material** option to clear a preselection.
+
+### Installation
+
+**Windows (installer):** run `NesTube-1.0.1-alpha.1-setup.exe`.  
+⚠️ SmartScreen may warn that the program is unsigned. Choose **More info → Run anyway**.
+
+**Windows (portable):** extract `NesTube-1.0.1-alpha.1-windows.zip` and run `NesTube.exe`.
+
+**Linux (portable):** extract `NesTube-1.0.1-alpha.1-linux.zip` and run `./NesTube/NesTube`.  
+On Ubuntu/Debian, install the libraries it needs first:  
+`sudo apt install libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libegl1 libnss3 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libasound2`
+
+**macOS (portable):** extract `NesTube-1.0.1-alpha.1-macos.zip` and run `./NesTube/NesTube`.  
+⚠️ The app is unsigned, so macOS blocks it the first time. Run `xattr -dr com.apple.quarantine NesTube`, or right-click the program and choose **Open**.
+
+**From source:** see the [README](README.md).
+
+### Reporting issues
+
+Open an issue at [github.com/Grohle/NesTube/issues](https://github.com/Grohle/NesTube/issues).
+
+---
+
 ## NesTube 1.0.0-alpha.1
 
 **First alpha release: a cleaner, modern window on top of the same nesting engine.**
