@@ -1,8 +1,15 @@
-## NesTube 0.1.0
+## NesTube 1.0.0-alpha.1
 
-**First release with the new interface: a cleaner, modern window on top of the same nesting engine.**
+**First alpha release: a cleaner, modern window on top of the same nesting engine.**
 
-> **Status:** early release (0.x). The core works and is tested, but interfaces and file formats may still change before 1.0.
+> **Status:** alpha. The core works and is tested, but interfaces and file formats may still change before 1.0.
+
+### Licensing
+
+NesTube is now distributed under the **PolyForm Noncommercial License 1.0.0**
+(source-available, non-commercial use). Versions published under the GPL-3.0
+before this change remain available under the GPL-3.0. Commercial use needs a
+separate license — see the [README](README.md).
 
 ### What's new
 
@@ -31,16 +38,16 @@ The new interface was tested by nesting pieces, then picking them up, rotating t
 
 ### Installation
 
-**Windows (installer):** run `NesTube-0.1.0-setup.exe`.  
+**Windows (installer):** run `NesTube-1.0.0-alpha.1-setup.exe`.  
 ⚠️ SmartScreen may warn that the program is unsigned. Choose **More info → Run anyway**.
 
-**Windows (portable):** extract `NesTube-0.1.0-windows.zip` and run `NesTube.exe`.
+**Windows (portable):** extract `NesTube-1.0.0-alpha.1-windows.zip` and run `NesTube.exe`.
 
-**Linux (portable):** extract `NesTube-0.1.0-linux.zip` and run `./NesTube/NesTube`.  
+**Linux (portable):** extract `NesTube-1.0.0-alpha.1-linux.zip` and run `./NesTube/NesTube`.  
 On Ubuntu/Debian, install the libraries it needs first:  
 `sudo apt install libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libegl1 libnss3 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libasound2`
 
-**macOS (portable):** extract `NesTube-0.1.0-macos.zip` and run `./NesTube/NesTube`.  
+**macOS (portable):** extract `NesTube-1.0.0-alpha.1-macos.zip` and run `./NesTube/NesTube`.  
 ⚠️ The app is unsigned, so macOS blocks it the first time. Run `xattr -dr com.apple.quarantine NesTube`, or right-click the program and choose **Open**.
 
 **From source:** see the [README](README.md).
@@ -91,16 +98,16 @@ La interfaz nueva se ha probado anidando piezas y después cogiéndolas, rotánd
 
 ### Instalación
 
-**Windows (instalador):** ejecuta `NesTube-0.1.0-setup.exe`.  
+**Windows (instalador):** ejecuta `NesTube-1.0.0-alpha.1-setup.exe`.  
 ⚠️ SmartScreen puede avisar de que el programa no está firmado. Elige **Más información → Ejecutar de todas formas**.
 
-**Windows (portable):** extrae `NesTube-0.1.0-windows.zip` y ejecuta `NesTube.exe`.
+**Windows (portable):** extrae `NesTube-1.0.0-alpha.1-windows.zip` y ejecuta `NesTube.exe`.
 
-**Linux (portable):** extrae `NesTube-0.1.0-linux.zip` y ejecuta `./NesTube/NesTube`.  
+**Linux (portable):** extrae `NesTube-1.0.0-alpha.1-linux.zip` y ejecuta `./NesTube/NesTube`.  
 En Ubuntu/Debian, instala antes las librerías que necesita:  
 `sudo apt install libxkbcommon-x11-0 libxcb-xkb1 libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libegl1 libnss3 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libasound2`
 
-**macOS (portable):** extrae `NesTube-0.1.0-macos.zip` y ejecuta `./NesTube/NesTube`.  
+**macOS (portable):** extrae `NesTube-1.0.0-alpha.1-macos.zip` y ejecuta `./NesTube/NesTube`.  
 ⚠️ La aplicación no está firmada, así que macOS la bloquea la primera vez. Ejecuta `xattr -dr com.apple.quarantine NesTube`, o haz clic derecho sobre el programa y elige **Abrir**.
 
 **Desde el código fuente:** ver el [README](README.md).
