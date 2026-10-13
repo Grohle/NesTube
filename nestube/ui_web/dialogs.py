@@ -68,6 +68,12 @@ def _material_exec(dlg, answer: Optional[dict], cap) -> int:
         cap.ask({"dialog": "material", "mode": dlg._mode, "query": dlg._search.text(),
                  "min_len": dlg._min_len.text()})
         return _REJECTED
+    if answer.get("clear"):
+        # "Sin material": clear the current selection instead of picking one.
+        dlg.result_selection = MaterialSelection(
+            source="profile", profile_name="", material="", quality="", stock_bar=None,
+        )
+        return _ACCEPTED
     bar = None
     if answer.get("stock_id") is not None:
         from nestube.stock_db import get_stock

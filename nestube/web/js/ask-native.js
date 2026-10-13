@@ -17,11 +17,11 @@
 
   // Opens the modal and settles exactly once: with the answer, or null when
   // the modal is closed any other way (Cancel, ×, Esc, backdrop).
-  function ask(title, body, okLabel, wide, collect, setup) {
+  function ask(title, body, okLabel, wide, collect, setup, opts) {
     return new Promise((resolve) => {
       let done = false;
       const finish = (v) => { if (done) return; done = true; obs.disconnect(); resolve(v); };
-      openModal(title, body, foot(okLabel), wide);
+      openModal(title, body, foot(okLabel), wide, opts);
       const backdrop = $("#modal-backdrop");
       const obs = new MutationObserver(() => { if (backdrop.hidden) finish(null); });
       obs.observe(backdrop, { attributes: true, attributeFilter: ["hidden"] });
@@ -35,14 +35,16 @@
   // ── material / stock search ─────────────────────────────────────────────
   const MODES = [["profile", "Perfiles y tubos"], ["fictitious", "Material"], ["stock", "Stock"]];
   function material(n) {
-    let mode = n.mode || "profile", rows = [], pick = -1, timer = null, seq = 0;
+    let mode = n.mode || "profile", rows = [], pick = -1, timer = null, seq = 0, cleared = false;
     const body = `<div class="segmented" id="mat-mode" style="width:360px;max-width:100%">${MODES.map(([m, l]) => `<button data-m="${m}" aria-pressed="${m === mode}">${l}</button>`).join("")}</div>
       <div style="display:grid;grid-template-columns:1fr 150px;gap:8px">
         <div class="search">${ICON("search", "")}<input id="mat-q" value="${esc(n.query)}" placeholder="Buscar perfil, material o calidad…"></div>
         <div class="input" id="mat-min-wrap"><input id="mat-min" class="num" value="${esc(n.min_len)}" placeholder="Largo mín."><span class="unit">mm</span></div>
       </div>
+      <div style="display:flex;justify-content:flex-end"><button class="btn outline" id="mat-clear">Sin material</button></div>
       <div class="list" id="mat-list" style="max-height:340px;overflow:auto" role="listbox" aria-label="Resultados"></div>`;
-    return ask("Buscar perfiles y tubos", body, "Seleccionar", true, () => (pick >= 0 ? rows[pick] : undefined), (ok) => {
+    return ask("Buscar perfiles y tubos", body, "Seleccionar", true, () => (cleared ? { clear: true } : (pick >= 0 ? rows[pick] : undefined)), (ok) => {
+      $("#mat-clear").addEventListener("click", () => { cleared = true; ok(); });
       const list = $("#mat-list");
       const render = () => {
         $("#mat-min-wrap").style.visibility = mode === "stock" ? "visible" : "hidden";
@@ -59,7 +61,10 @@
       // while an older search is still answering must not bring it back).
       const load = () => {
         const mine = ++seq;
-        return window.NTB.call("data.material_options", { mode, query: $("#mat-q").value, min_len: $("#mat-min").value })
+        const q = $("#mat-q"), mn = $("#mat-min");
+        // The debounced search can fire after the dialog body was replaced.
+        if (!q || !mn) return;
+        return window.NTB.call("data.material_options", { mode, query: q.value, min_len: mn.value })
           .then((r) => { if (mine !== seq) return; rows = (r && r.ok && r.result.rows) || []; pick = rows.length === 1 ? 0 : -1; render(); });
       };
       const later = () => { clearTimeout(timer); timer = setTimeout(load, 180); };
@@ -68,7 +73,7 @@
       }));
       $("#mat-q").addEventListener("input", later); $("#mat-min").addEventListener("input", later);
       load();
-    });
+    }, { noBackdropClose: true });
   }
 
   // ── cutting height (which face is cut) ──────────────────────────────────

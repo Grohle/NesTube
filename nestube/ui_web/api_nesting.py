@@ -313,6 +313,19 @@ class NestingAPI:
         if pi is not None:
             self.tab._change_piece_values(pi)
 
+    def piece_poly(self, i: int) -> Dict[str, Any]:
+        """Contour polygon of sidebar cut ``i`` for the web CAD module."""
+        tab = self.tab
+        if not (0 <= i < len(tab._pieces)):
+            return {"poly": []}
+        poly = tab._compute_poly_local(tab._pieces[i].corte, False, False)
+        return {"poly": [[_r(x, 2), _r(y, 2)] for x, y in poly]}
+
+    def delete_bar(self, i: int) -> Dict[str, Any]:
+        """Remove bar ``i`` from the layout (pieces return to the sidebar)."""
+        self.tab._delete_bar(i)
+        return self.state()
+
     def piece_action(self, i: int, name: str) -> Dict[str, Any]:
         """Sidebar context menu actions on a cut (PieceInfo index)."""
         tab = self.tab

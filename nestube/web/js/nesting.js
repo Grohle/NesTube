@@ -453,6 +453,7 @@
 
   // ── bars / remnants ─────────────────────────────────────────────────────
   function addBar() { pushUndo(); state.bars.push({ id: nextBarId++, len: state.barLen, pieces: [], manual: true }); refreshAll(); fit(); }
+  function deleteBar(id) { const i = state.bars.findIndex((b) => b.id === id); if (i < 0) return; pushUndo(); state.bars.splice(i, 1); refreshAll(); }
   function moveBar(id, dir) {
     const vis = state.bars; const i = vis.findIndex((b) => b.id === id); const j = i + dir;
     if (i < 0 || j < 0 || j >= vis.length) return;
@@ -528,7 +529,7 @@
   }
 
   window.NestCanvas = {
-    init, state, fit, undo, redo, save, escape, addBar, moveBar, filterBar, toggleBarExpanded,
+    init, state, fit, undo, redo, save, escape, addBar, moveBar, deleteBar, filterBar, toggleBarExpanded,
     startFloating, cancelFloating, cycleOrientation, flip, deleteSelected, removePermanently,
     clearSelection, toggleNest, highlight, refreshRemnants, clearRemnants, clearNesting, setParam,
     remaining, placedCount, efficiency, usedEnd, cutById, polyLocal,

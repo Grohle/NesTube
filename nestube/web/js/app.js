@@ -175,6 +175,19 @@
     { label: "Exportar anidado (PNG)", action: () => (NATIVE ? N.exportAction("export_png") : exportGuard(() => toast("Diagrama de anidado guardado en: C:\\NesTube\\exports\\PED-2026-001.png"))) },
   ];
 
+  // "Editar dibujo…" always opens the web CAD module — never the legacy Qt
+  // CutPieceDialog. Placed pieces already carry their contour (poly) in the
+  // bridge state; sidebar cuts fetch theirs through nest.piece_poly.
+  function editDrawing(target) {
+    const name = (target && (target.name || (target.cut && target.cut.name))) || "IPE 200";
+    if (target && target.poly) { window.NT_CAD.open(name, target.poly); return; }
+    if (NATIVE && target && target.id != null) {
+      call("nest.piece_poly", { i: target.id }).then((r) => window.NT_CAD.open(name, r && r.poly));
+      return;
+    }
+    dialog("profile-creator");
+  }
+
   function pieceMenu(piece) {
     const cut = piece ? piece.cut : null;
     return [
@@ -187,7 +200,7 @@
       { label: "Voltear horizontal", sc: "Ctrl+H", action: () => N.flip("fh") },
       { label: "Voltear vertical", sc: "Ctrl+A", action: () => N.flip("fv") },
       "-",
-      { label: "Editar dibujo…", action: () => (N.editDrawing ? N.editDrawing(piece) : dialog("profile-creator")) },
+      { label: "Editar dibujo…", action: () => editDrawing(piece) },
       { label: "Exportar DXF", action: () => (N.exportPieceDxf ? N.exportPieceDxf(piece) : toast(`DXF de «${cut.name}» exportado`)) },
       "-",
       { label: "Quitar de barra", sc: "Supr", action: () => N.deleteSelected() },
@@ -198,7 +211,7 @@
     return [
       { label: "Cambiar valores…", action: () => changeValues(cut) },
       "-",
-      { label: "Editar dibujo…", action: () => (N.editDrawing ? N.editDrawing(cut) : dialog("profile-creator")) },
+      { label: "Editar dibujo…", action: () => editDrawing(cut) },
       { label: "Exportar DXF", action: () => (N.exportPieceDxf ? N.exportPieceDxf(cut) : toast(`DXF de «${cut.name}» exportado`)) },
       "-",
       { label: "Eliminar pieza", danger: true, action: () => N.removePermanently(cut) },
@@ -372,6 +385,12 @@
     });
   }
 
+  // A bar with pieces asks first; its pieces return to the sidebar.
+  function deleteBar(b) {
+    if (!b.pieces.length) { N.deleteBar(b.id); return; }
+    confirmDialog({ title: "Borrar barra", text: `La barra tiene ${b.pieces.length} pieza(s) colocada(s), que volverán a la lista de cortes. ¿Borrarla?`, ok: () => N.deleteBar(b.id) });
+  }
+
   function renderBars() {
     const list = $("#bar-list"); list.replaceChildren();
     const bars = S.bars.filter((b) => b.pieces.length || b.manual);
@@ -388,6 +407,7 @@
           <span class="eff">${(used / b.len * 100).toFixed(1)}%</span>
           <button class="btn icon-only" data-up title="Subir barra" ${i === 0 ? "disabled" : ""}>${ICON("arrow-up", "sm")}</button>
           <button class="btn icon-only" data-down title="Bajar barra" ${i === bars.length - 1 ? "disabled" : ""}>${ICON("arrow-down", "sm")}</button>
+          <button class="btn icon-only danger" data-del title="Borrar barra">${ICON("trash", "sm")}</button>
         </div><div class="mini-bar">${segs}</div>`;
       if (exp) {
         const counts = new Map(); b.pieces.forEach((p) => counts.set(p.cut, (counts.get(p.cut) || 0) + 1));
@@ -401,6 +421,7 @@
         if (e.target.closest("[data-exp]")) { N.toggleBarExpanded(b.id); return; }
         if (e.target.closest("[data-up]")) { N.moveBar(b.id, -1); return; }
         if (e.target.closest("[data-down]")) { N.moveBar(b.id, 1); return; }
+        if (e.target.closest("[data-del]")) { deleteBar(b); return; }
         N.filterBar(b.id);
       });
       list.appendChild(it);
@@ -545,7 +566,7 @@
     "rem-delete-all": () => confirmDialog({ title: "Borrar todos los retales", text: "¿Borrar todos los retales de este material del stock?",
       ok: () => { if (NATIVE) { N.deleteAllRemnants(); return; } const n = S.remnants.length; N.clearRemnants(); toast(`${n} retales borrados del stock.`); } }),
     "change-values": () => S.sel[0] && changeValues(S.sel[0].cut),
-    "edit-drawing": () => (NATIVE ? N.editDrawing(S.sel[0]) : dialog("profile-creator")),
+    "edit-drawing": () => editDrawing(S.sel[0]),
     "sel-material": () => (NATIVE ? N.selMaterial() : dialog("material-search")),
     "clear-stock": () => (NATIVE ? N.setParam("useStock", false) : ($("#sw-stock").checked = false, $("#sw-stock").dispatchEvent(new Event("change")))),
     "subtab-add": () => (NATIVE ? call("data.subtab_add").then(() => { N.refresh(); if (window.NT_VIEWS) window.NT_VIEWS.reload(); }) : toast("Nueva sub-pestaña de material")),
@@ -558,12 +579,19 @@
       ok: () => alertBox({ title: "Copias de seguridad de la base de datos", msg: "Copia restaurada. Reinicia NesTube." }) }),
   };
   window.NT.ACTIONS = ACTIONS;
+  // The app draws its own context menus; never show the browser/WebEngine
+  // one. Inputs and editable text keep theirs (copy/paste).
+  document.addEventListener("contextmenu", (e) => {
+    if (e.target.closest("input, textarea, select, [contenteditable]")) return;
+    e.preventDefault();
+  });
   document.addEventListener("click", (e) => {
     const a = e.target.closest("[data-act]"); if (a && ACTIONS[a.dataset.act]) { ACTIONS[a.dataset.act](a); return; }
     const d = e.target.closest("[data-dialog]"); if (d) { dialog(d.dataset.dialog); return; }
     const vi = e.target.closest("[data-viewimg]");
     if (vi && window.NT_PROFILES) { const P = window.NT_PROFILES, all = P.PROFILES; window.NT_VIEWER.open(P.viewerItems(all), all.findIndex((p) => p[0] === vi.dataset.viewimg)); return; }
-    if (e.target.closest("[data-close]") || e.target.id === "modal-backdrop") closeModal();
+    if (e.target.closest("[data-close]")) closeModal();
+    else if (e.target.id === "modal-backdrop" && !$("#modal-backdrop").dataset.noBackdropClose) closeModal();
   });
 
   function selectPTab(name) {
