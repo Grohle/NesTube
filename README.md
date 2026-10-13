@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://github.com/Grohle/nestube/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Grohle/nestube?include_prereleases&label=release&color=F0592A"></a>
-  <a href="LICENSE"><img alt="License: GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-blue"></a>
+  <a href="LICENSE"><img alt="License: PolyForm-Noncommercial-1.0.0" src="https://img.shields.io/badge/license-PolyForm--Noncommercial-1.0.0-blue"></a>
   <img alt="Platforms" src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-555">
   <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white">
   <img alt="Qt / PySide6" src="https://img.shields.io/badge/Qt-PySide6-41CD52?logo=qt&logoColor=white">
@@ -325,14 +325,18 @@ If NesTube saves you material, you can
 
 ### License
 
-NesTube is released under the **GNU General Public License v3.0** (GPL-3.0).
-You're free to use, study, modify and redistribute it, as long as derived
-works are also published under the GPL-3.0. The full text is in
-[`LICENSE`](LICENSE).
+NesTube is source-available under the **PolyForm Noncommercial License 1.0.0**.
+You're free to use, study, modify and redistribute it for non-commercial
+purposes. The full text is in [`LICENSE`](LICENSE).
 
-> The author keeps the copyright. If you need a **commercial license** (use in a
-> proprietary product, without the GPL's copyleft obligations), get in touch
-> through the [repository issues](https://github.com/Grohle/nestube/issues).
+> The author keeps the copyright. **Commercial use** (any use with a commercial
+> purpose, including use in a proprietary product) needs a separate commercial
+> license — get in touch through the
+> [repository issues](https://github.com/Grohle/nestube/issues).
+
+> Versions of NesTube distributed under the GPL-3.0 before this change remain
+> available under the GPL-3.0; the PolyForm license applies to the current and
+> future versions.
 
 ### Contributing
 
@@ -616,15 +620,19 @@ Si NesTube te ahorra material, puedes
 
 ### Licencia
 
-NesTube se distribuye bajo la **GNU General Public License v3.0** (GPL-3.0).
-Eres libre de usar, estudiar, modificar y redistribuir el programa siempre que
-los trabajos derivados se publiquen también bajo la GPL-3.0. El texto completo
-está en [`LICENSE`](LICENSE).
+NesTube es de código con disponibilidad restringida (source-available) bajo la
+**PolyForm Noncommercial License 1.0.0**. Eres libre de usar, estudiar,
+modificar y redistribuir el programa con fines no comerciales. El texto
+completo está en [`LICENSE`](LICENSE).
 
-> El copyright lo conserva el autor. Si en el futuro necesitas una **licencia
-> comercial** (uso en un producto propietario, sin las obligaciones de copyleft
-> de la GPL), ponte en contacto a través de los
+> El copyright lo conserva el autor. El **uso comercial** (cualquier uso con fin
+> comercial, incluido el uso en un producto propietario) requiere una licencia
+> comercial aparte — ponte en contacto a través de los
 > [issues del repositorio](https://github.com/Grohle/nestube/issues).
+
+> Las versiones de NesTube distribuidas bajo la GPL-3.0 antes de este cambio
+> siguen disponibles bajo la GPL-3.0; la licencia PolyForm se aplica a la
+> versión actual y a las futuras.
 
 ### Contribuir
 

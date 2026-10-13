@@ -41,19 +41,19 @@ Please add or update tests for any behaviour you change.
 
 ## Contributor License Agreement (CLA)
 
-NesTube is released under the **GPL-3.0**, but the project maintainer keeps the
-option of offering the software under a separate **commercial license** as well
-(dual licensing). For that to remain possible, the maintainer must hold the
-rights to all contributed code.
+NesTube is distributed under the **PolyForm Noncommercial License 1.0.0**, but
+the project maintainer keeps the option of offering the software under a
+separate **commercial license** as well (dual licensing). For that to remain
+possible, the maintainer must hold the rights to all contributed code.
 
 **By submitting a pull request you agree that:**
 
 1. You are the author of the contribution (or have the right to submit it), and
 2. You grant the project maintainer (Alberto Miranda) a perpetual, worldwide,
    irrevocable license to use, modify, relicense and distribute your
-   contribution, **including under licenses other than the GPL-3.0** (e.g. a
-   commercial license), while your contribution also remains available under the
-   GPL-3.0.
+   contribution, **including under licenses other than the PolyForm
+   Noncommercial 1.0.0** (e.g. a commercial license), while your contribution
+   also remains available under the PolyForm Noncommercial 1.0.0.
 
-This is the same model used by many dual-licensed open-source projects (e.g. Qt).
+This is the same model used by many dual-licensed projects (e.g. Qt).
 If you cannot agree to this, please open an issue to discuss before contributing.
